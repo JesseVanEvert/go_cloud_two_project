@@ -30,13 +30,13 @@ func (e *Emitter) Push(event string, severity string) error {
 	log.Println("Pushing to channel")
 
 	err = channel.Publish(
-		"logs_topic",
+		"messages",
 		severity,
 		false,
 		false,
 		amqp.Publishing{
 			ContentType: "text/plain",
-			Body: []byte(event),
+			Body:        []byte(event),
 		},
 	)
 	if err != nil {

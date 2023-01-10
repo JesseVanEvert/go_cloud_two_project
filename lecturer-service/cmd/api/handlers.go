@@ -1,10 +1,10 @@
 package main
 
 import (
-	"broker/event"
 	"bytes"
 	"encoding/json"
 	"errors"
+	"lecturer/event"
 	"net/http"
 )
 
@@ -12,13 +12,12 @@ type RequestPayload struct {
 	Action  string         `json:"action"`
 	Auth    AuthPayload    `json:"auth,omitempty"`
 	Log     LogPayload     `json:"log,omitempty"`
-	Message MessagePayload `json:"mail,omitempty"`
+	Message MessagePayload `json:"message,omitempty"`
 }
 
 type MessagePayload struct {
 	From    string `json:"from"`
 	To      string `json:"to"`
-	Subject string `json:"subject"`
 	Message string `json:"message"`
 }
 
@@ -55,8 +54,6 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 	switch requestPayload.Action {
 	case "auth":
 		app.authenticate(w, requestPayload.Auth)
-	case "log":
-		app.logEventViaRabbit(w, requestPayload.Log)
 	case "message":
 		app.putMessageOnQueue(w, requestPayload.Message)
 	default:
@@ -153,7 +150,7 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 
 func (app *Config) putMessageOnQueue(w http.ResponseWriter, msg MessagePayload) {
 
-	err := app.pushToQueue(msg.From, msg.To, msg.Subject, msg.Message)
+	err := app.pushToQueue(msg.From, msg.To, msg.Message)
 	if err != nil {
 		app.errorJSON(w, err)
 		return
@@ -166,24 +163,9 @@ func (app *Config) putMessageOnQueue(w http.ResponseWriter, msg MessagePayload) 
 	app.writeJSON(w, http.StatusAccepted, payload)
 }
 
-// logEventViaRabbit logs an event using the logger-service. It makes the call by pushing the data to RabbitMQ.
-/*func (app *Config) logEventViaRabbit(w http.ResponseWriter, l LogPayload) {
-	err := app.pushToQueue(l.Name, l.Data)
-	if err != nil {
-		app.errorJSON(w, err)
-		return
-	}
-
-	var payload jsonResponse
-	payload.Error = false
-	payload.Message = "logged via RabbitMQ"
-
-	app.writeJSON(w, http.StatusAccepted, payload)
-}*/
-
 // Change to message instead of log
 // pushToQueue pushes a message into RabbitMQ
-func (app *Config) pushToQueue(from, to, subject, message string) error {
+func (app *Config) pushToQueue(from, to, message string) error {
 	emitter, err := event.NewEventEmitter(app.Rabbit)
 	if err != nil {
 		return err
@@ -192,7 +174,6 @@ func (app *Config) pushToQueue(from, to, subject, message string) error {
 	payload := MessagePayload{
 		From:    from,
 		To:      to,
-		Subject: subject,
 		Message: message,
 	}
 

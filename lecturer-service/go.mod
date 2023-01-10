@@ -1,4 +1,4 @@
-module broker
+module lecturer
 
 go 1.18
 

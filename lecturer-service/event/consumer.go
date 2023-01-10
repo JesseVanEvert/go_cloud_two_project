@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type Consumer struct {
-	conn *amqp.Connection
+	conn      *amqp.Connection
 	queueName string
 }
 
@@ -57,7 +58,7 @@ func (consumer *Consumer) Listen(topics []string) error {
 		ch.QueueBind(
 			q.Name,
 			s,
-			"logs_topic",
+			"messages",
 			false,
 			nil,
 		)
@@ -82,7 +83,7 @@ func (consumer *Consumer) Listen(topics []string) error {
 		}
 	}()
 
-	fmt.Printf("Waiting for message [Exchange, Queue] [logs_topic, %s]\n", q.Name)
+	fmt.Printf("Waiting for message [Exchange, Queue] [messages, %s]\n", q.Name)
 	<-forever
 
 	return nil
@@ -97,10 +98,8 @@ func handlePayload(payload Payload) {
 			log.Println(err)
 		}
 
-	case "auth":
-		// authenticate
-
-	// you can have as many cases as you want, as long as you write the logic
+	case "message":
+		println("Message received: " + payload.Data)
 
 	default:
 		err := logEvent(payload)
@@ -133,6 +132,6 @@ func logEvent(entry Payload) error {
 	if response.StatusCode != http.StatusAccepted {
 		return err
 	}
-	
+
 	return nil
 }

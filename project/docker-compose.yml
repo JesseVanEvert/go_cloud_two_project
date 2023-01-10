@@ -2,22 +2,13 @@ version: '3'
 
 services:
 
-  broker-service:
+  lecturer-service:
     build:
-      context: ./../broker-service
-      dockerfile: ./../broker-service/broker-service.dockerfile
+      context: ./../lecturer-service
+      dockerfile: ./../lecturer-service/lecturer-service.dockerfile
     restart: always
     ports:
       - "8080:80"
-    deploy:
-      mode: replicated
-      replicas: 1
-
-  logger-service:
-    build:
-      context: ./../logger-service
-      dockerfile: ./../logger-service/logger-service.dockerfile
-    restart: always
     deploy:
       mode: replicated
       replicas: 1
@@ -29,5 +20,3 @@ services:
     deploy:
       mode: replicated
       replicas: 1
-    volumes:
-      - ./db-data/rabbitmq/:/var/lib/rabbitmq/
