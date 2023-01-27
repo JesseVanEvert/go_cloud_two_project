@@ -1,5 +1,7 @@
 FROM golang:1.16-alpine AS builder
 
+RUN apk add --no-cache ca-certificates
+
 # Move to working directory (/build).
 WORKDIR /build
 

@@ -13,9 +13,7 @@ import (
 )
 
 type Payload struct {
-	From    string `json:"from"`
-	To      string `json:"to"`
-	Message string `json:"message"`
+	msg string `json:"message"`
 }
 
 func main() {
@@ -60,14 +58,27 @@ func main() {
 
 	go func() {
 		for d := range messages {
-			// For example, show received message in a console.
+			/*			if !json.Valid(d.Body) {
+						fmt.Println("Error: Invalid JSON message")
+						continue
+					}*/
+			/*			var payload Payload
+						err := json.Unmarshal(d.Body, &payload)
+						if err != nil {
+							fmt.Println("Error parsing message payload:", err)
+							continue
+						}*/
+			msg := string(d.Body)
+
+			// Pass payload to postMessage method
+			postMessage(msg)
 			log.Printf("Received a message: %s", d.Body)
 		}
 	}()
 
 	<-forever
 }
-func postMessage(entry Payload) error {
+func postMessage(entry string) error {
 
 	jsonData, _ := json.MarshalIndent(entry, "", "\t")
 	content := string(jsonData)
