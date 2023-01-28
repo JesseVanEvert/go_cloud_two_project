@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"math"
@@ -8,13 +9,19 @@ import (
 	"os"
 	"time"
 
+	_ "github.com/jackc/pgconn"
+	_ "github.com/jackc/pgx/v4"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 const webPort = "80"
 
+
 type Config struct {
-	Rabbit *amqp.Connection
+	Rabbit *amqp.Connection,
+	DB *sql.DB,
+	Models *data.Models,
 }
 
 func main() {
@@ -24,10 +31,19 @@ func main() {
 		log.Println(err)
 		os.Exit(1)
 	}
+
 	defer rabbitConn.Close()
 
+	// connect to DB
+	conn := connectToDB()
+	if conn == nil {
+		log.Panic("Can't connect to Postgres!")
+	}
+	
 	app := Config{
 		Rabbit: rabbitConn,
+		DB: conn,
+		Models: data.New(conn),
 	}
 
 	log.Printf("Starting broker service on port %s\n", webPort)
@@ -74,4 +90,43 @@ func connect() (*amqp.Connection, error) {
 	}
 
 	return connection, nil
+}
+
+func openDB(dsn string) (*sql.DB, error) {
+	db, err := sql.Open("pgx", dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Ping()
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
+func connectToDB() *sql.DB {
+	dsn := os.Getenv("DSN")
+	var counts int64
+
+	for {
+		connection, err := openDB(dsn)
+		if err != nil {
+			log.Println("Postgres not yet ready ...")
+			counts++
+		} else {
+			log.Println("Connected to Postgres!")
+			return connection
+		}
+
+		if counts > 10 {
+			log.Println(err)
+			return nil
+		}
+
+		log.Println("Backing off for two seconds....")
+		time.Sleep(2 * time.Second)
+		continue
+	}
 }
