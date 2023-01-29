@@ -8,20 +8,16 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// NOTE: PULIC METHODS RE ALL CAPS
 type MessageRepository interface {
 	FindAll() ([]Message, error)
 	FindById(id string) (*Message, *AppError)
 	FindMessageByLecturerId(id string) (*Message, *AppError)
 }
 
-// We wrap the sql db stuff in  a struct CustomerRepoDB
 type MessageRepoDB struct {
 	db *sql.DB
 }
 
-// We implement the interface CustomerRepository
-// By using the struct CustomerRepoDB (the real implementation)
 func (ch MessageRepoDB) FindAll() ([]Message, error) {
 	findall_sql := "SELECT * FROM message"
 	rows, err := ch.db.Query(findall_sql)
