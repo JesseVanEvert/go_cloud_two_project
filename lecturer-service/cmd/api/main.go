@@ -1,14 +1,17 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
+	"lecturer/ent"
 	"log"
 	"math"
 	"net/http"
 	"os"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/jackc/pgconn"
 	_ "github.com/jackc/pgx/v4"
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -19,12 +22,23 @@ const webPort = "80"
 
 
 type Config struct {
-	Rabbit *amqp.Connection,
-	DB *sql.DB,
-	Models *data.Models,
+	Rabbit *amqp.Connection
 }
 
 func main() {
+
+	// connect to database
+	client, err := ent.Open("mysql", "root:@tcp(localhost:3306)/lecturer?parseTime=True")
+
+	if err != nil {
+        log.Fatalf("failed opening connection to mysql: %v", err)
+    }
+    defer client.Close()
+    // Run the auto migration tool.
+    if err := client.Schema.Create(context.Background()); err != nil {
+        log.Fatalf("failed creating schema resources: %v", err)
+    }
+	
 	// try to connect to rabbitmq
 	rabbitConn, err := connect()
 	if err != nil {
@@ -33,17 +47,9 @@ func main() {
 	}
 
 	defer rabbitConn.Close()
-
-	// connect to DB
-	conn := connectToDB()
-	if conn == nil {
-		log.Panic("Can't connect to Postgres!")
-	}
 	
 	app := Config{
 		Rabbit: rabbitConn,
-		DB: conn,
-		Models: data.New(conn),
 	}
 
 	log.Printf("Starting broker service on port %s\n", webPort)

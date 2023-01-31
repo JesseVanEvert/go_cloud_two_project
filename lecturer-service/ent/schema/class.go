@@ -14,7 +14,6 @@ type Class struct {
 // Fields of the Class.
 func (Class) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("id").Unique(),
 		field.String("name"),
 	}
 }

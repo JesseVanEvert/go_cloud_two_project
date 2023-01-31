@@ -14,9 +14,10 @@ type Lecturer struct {
 // Fields of the Lecturer.
 func (Lecturer) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("id").Unique(),
-		field.Int("person_id").Unique(),
-		field.Time("deleted_at"),
+		field.String("first_name"),
+		field.String("last_name"),
+		field.String("email"),
+		field.String("deleted_at"),
 	}
 }
 
@@ -24,6 +25,5 @@ func (Lecturer) Fields() []ent.Field {
 func (Lecturer) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("class_lecturers", ClassLecturer.Type),
-		edge.From("person", Person.Type),
 	}
 }
