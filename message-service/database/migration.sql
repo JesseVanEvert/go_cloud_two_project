@@ -2,18 +2,12 @@
 CREATE TABLE `message`
 (
     messageID   bigint auto_increment,
-    lecturerID  bigint,
+    lecturerEmail  varchar(255) NOT NULL ,
     content varchar(255) NOT NULL,
-    PRIMARY KEY (`messageID`, `lecturerID`)
+    PRIMARY KEY (`messageID`, lecturerEmail)
 );
 
-INSERT INTO `message` (`lecturerID`,`content`)
-VALUES (3,'I will be absent tomorrow'),
-       (4,'I will handout the assignment in upcoming days');
+INSERT INTO `message` (lecturerEmail , `content`)
+VALUES ('mridulhasan157@gmail.com','I will be absent tomorrow'),
+       ('mridulhasan157@gmail.com','I will handout the assignment in upcoming days');
 
-/*CREATE TABLE `classMessage`
-(
-    classID   bigint auto_increment,
-    PRIMARY KEY (`classID`)
-    messageID INT FOREIGN KEY REFERENCES message(messageID)
-);*/

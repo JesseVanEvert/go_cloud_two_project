@@ -31,10 +31,10 @@ func (ch *MessageHandlers) FindByMessageId(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-// Find message By lecturer Id
-func (ch *MessageHandlers) FindMessageByLecturerId(w http.ResponseWriter, r *http.Request) {
+// Find message By lecturer email
+func (ch *MessageHandlers) FindMessageByLecturerEmail(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	message, err := ch.Service.FindMessageByLecturerId(params["lecturerId"])
+	message, err := ch.Service.FindMessageByLecturerEmail(params["lecturerEmail"])
 	if err != nil {
 		writeResponse(w, err.Code, err.AsMessage())
 	} else {

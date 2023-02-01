@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 
@@ -8,6 +9,12 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/streadway/amqp"
 )
+
+type MessagePayload struct {
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Message string `json:"message"`
+}
 
 func main() {
 	// Define RabbitMQ server URL.
@@ -50,13 +57,18 @@ func main() {
 	app.Use(
 		logger.New(), // add simple logger
 	)
-
+	messagePaload := MessagePayload{
+		Message: "Hello, World!",
+		From:    "mridulhasan157@gmail.com",
+		To:      "mahedimridul57@gmail.com",
+	}
+	body, err := json.Marshal(messagePaload)
 	// Add route for send message to Service 1.
 	app.Get("/send", func(c *fiber.Ctx) error {
 		// Create a message to publish.
 		message := amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(c.Query("msg")),
+			ContentType: "application/json",
+			Body:        body,
 		}
 
 		// Attempt to publish a message to the queue.

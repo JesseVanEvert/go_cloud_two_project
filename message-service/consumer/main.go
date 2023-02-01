@@ -8,7 +8,7 @@ import (
 
 	"log"
 	"os"
-	
+
 	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/sendgrid/sendgrid-go"
@@ -17,8 +17,10 @@ import (
 	"github.com/streadway/amqp"
 )
 
-type Payload struct {
-	msg string `json:"message"`
+type MessagePayload struct {
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Message string `json:"message"`
 }
 
 type MessageDB struct {
@@ -66,36 +68,26 @@ func main() {
 
 	go func() {
 		for d := range messages {
-			msg := string(d.Body)
 			ch := &MessageDB{db: NewMessageRepositoryDB().db}
-
-			/*			if !json.Valid(d.Body) {
-						fmt.Println("Error: Invalid JSON message")
-						continue
-					}*/
-			/*			var payload Payload
-						err := json.Unmarshal(d.Body, &payload)
-						if err != nil {
-							fmt.Println("Error parsing message payload:", err)
-							continue
-						}*/
-
-			// Pass payload to postMessage method
-			postMessage(msg)
+			var payload MessagePayload
+			err := json.Unmarshal(d.Body, &payload)
+			if err != nil {
+				fmt.Println("Error parsing message payload:", err)
+			}
+			postMessage(payload)
 			log.Printf("Received a message: %s", d.Body)
-			ch.InsertMessage(6, msg)
+			ch.InsertMessage(payload.From, payload.Message)
 		}
 	}()
 
 	<-forever
 }
 
-func postMessage(entry string) error {
-	jsonData, _ := json.MarshalIndent(entry, "", "\t")
-	content := string(jsonData)
-	from := mail.NewEmail("User", "mridulhasan157@gmail.com")
+func postMessage(payload MessagePayload) error {
+	content := payload.Message
+	from := mail.NewEmail("User", payload.From)
 	subject := "Email from teacher"
-	to := mail.NewEmail("Example User", "mahedimridul57@gmail.com")
+	to := mail.NewEmail("Example User", payload.To)
 	htmlContent := "<strong>Important!</strong>"
 	message := mail.NewSingleEmail(from, subject, to, content, htmlContent)
 	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
@@ -111,8 +103,8 @@ func postMessage(entry string) error {
 	return nil
 }
 
-func (ch *MessageDB) InsertMessage(lectureId int, msg string) (int64, error) {
-	res, err := ch.db.Exec("INSERT INTO message (lecturerID,content) VALUES (?,?)", lectureId, msg)
+func (ch *MessageDB) InsertMessage(lectureEmail string, msg string) (int64, error) {
+	res, err := ch.db.Exec("INSERT INTO message (lecturerEmail ,content) VALUES (?,?)", lectureEmail, msg)
 	if err != nil {
 		return 0, err
 	}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/go-chi/cors"
 	"log"
 	"net/http"
 
@@ -31,11 +32,18 @@ func main() {
 		Methods("GET").
 		Name(" Message")
 
-	router.HandleFunc("/messages/lecturer/{lecturerId}", messageHandlers.FindMessageByLecturerId).
+	router.HandleFunc("/messages/lecturer/{lecturerEmail}", messageHandlers.FindMessageByLecturerEmail).
 		Methods("GET").
 		Name(" Message")
 
 	fmt.Println("Starting Web Server on port", webPort)
-	log.Fatal(http.ListenAndServe(webPort, router))
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
+		AllowedHeaders: []string{"Content-Type", "Accept", "Authorization"},
+	})
+
+	fmt.Println("Starting Web Server on port", webPort)
+	log.Fatal(http.ListenAndServe(webPort, c.Handler(router)))
 
 }

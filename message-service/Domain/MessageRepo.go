@@ -11,7 +11,7 @@ import (
 type MessageRepository interface {
 	FindAll() ([]Message, error)
 	FindById(id string) (*Message, *AppError)
-	FindMessageByLecturerId(id string) (*Message, *AppError)
+	FindMessageByLecturerEmail(lectureEmail string) (*Message, *AppError)
 }
 
 type MessageRepoDB struct {
@@ -29,7 +29,7 @@ func (ch MessageRepoDB) FindAll() ([]Message, error) {
 	messages := make([]Message, 0)
 	for rows.Next() {
 		var message Message
-		err = rows.Scan(&message.MessageID, &message.LecturerID, &message.Content)
+		err = rows.Scan(&message.MessageID, &message.LecturerEmail, &message.Content)
 		if err != nil {
 			log.Println("Error scanning rows" + err.Error())
 		}
@@ -40,7 +40,7 @@ func (ch MessageRepoDB) FindAll() ([]Message, error) {
 
 func (ch MessageRepoDB) FindById(ID string) (*Message, *AppError) {
 	var message Message
-	err := ch.db.QueryRow("SELECT * FROM message WHERE messageID=?", ID).Scan(&message.MessageID, &message.LecturerID, &message.Content)
+	err := ch.db.QueryRow("SELECT * FROM message WHERE messageID=?", ID).Scan(&message.MessageID, &message.LecturerEmail, &message.Content)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, NotFoundError("Message not found")
@@ -52,9 +52,9 @@ func (ch MessageRepoDB) FindById(ID string) (*Message, *AppError) {
 	return &message, nil
 }
 
-func (ch MessageRepoDB) FindMessageByLecturerId(ID string) (*Message, *AppError) {
+func (ch MessageRepoDB) FindMessageByLecturerEmail(lecturerEmail string) (*Message, *AppError) {
 	var message Message
-	err := ch.db.QueryRow("SELECT * FROM message WHERE lecturerID=?", ID).Scan(&message.MessageID, &message.LecturerID, &message.Content)
+	err := ch.db.QueryRow("SELECT * FROM message WHERE lecturerEmail=?", lecturerEmail).Scan(&message.MessageID, &message.LecturerEmail, &message.Content)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, NotFoundError("Message not found")
