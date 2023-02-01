@@ -11,9 +11,13 @@ import (
 )
 
 type MessagePayload struct {
-	From    string `json:"from"`
-	To      string `json:"to"`
 	Message string `json:"message"`
+	From    string `json:"from"`
+	To      []Recipient
+}
+
+type Recipient struct {
+	Email string `json:"to"`
 }
 
 func main() {
@@ -60,7 +64,14 @@ func main() {
 	messagePaload := MessagePayload{
 		Message: "Hello, World!",
 		From:    "mridulhasan157@gmail.com",
-		To:      "mahedimridul57@gmail.com",
+		To: []Recipient{
+			{
+				Email: "anotherrecipient@gmail.com",
+			},
+			{
+				Email: "recipient1@gmail.com",
+			},
+		},
 	}
 	body, err := json.Marshal(messagePaload)
 	// Add route for send message to Service 1.

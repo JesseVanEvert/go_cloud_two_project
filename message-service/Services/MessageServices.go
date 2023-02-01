@@ -7,7 +7,7 @@ import (
 type MessageService interface {
 	GetAllMessages() ([]Domain.Message, error)
 	FindMessageById(id string) (*Domain.Message, *Domain.AppError)
-	FindMessageByLecturerEmail(lecturerEmail string) (*Domain.Message, *Domain.AppError)
+	FindMessageByLecturerEmail(lecturerEmail string) ([]Domain.Message, *Domain.AppError)
 }
 type DefaultMessageService struct {
 	repo Domain.MessageRepository
@@ -22,7 +22,7 @@ func (s DefaultMessageService) FindMessageById(id string) (*Domain.Message, *Dom
 	return s.repo.FindById(id)
 }
 
-func (s DefaultMessageService) FindMessageByLecturerEmail(lecturerEmail string) (*Domain.Message, *Domain.AppError) {
+func (s DefaultMessageService) FindMessageByLecturerEmail(lecturerEmail string) ([]Domain.Message, *Domain.AppError) {
 
 	return s.repo.FindMessageByLecturerEmail(lecturerEmail)
 }

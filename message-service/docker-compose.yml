@@ -65,6 +65,8 @@ services:
     depends_on:
       - message-broker
 
+
+
   # Create service with message consumer.
   consumer:
     container_name: consumer

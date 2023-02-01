@@ -18,9 +18,13 @@ import (
 )
 
 type MessagePayload struct {
-	From    string `json:"from"`
-	To      string `json:"to"`
 	Message string `json:"message"`
+	From    string `json:"from"`
+	To      []Recipient
+}
+
+type Recipient struct {
+	Email string `json:"to"`
 }
 
 type MessageDB struct {
@@ -76,35 +80,40 @@ func main() {
 			}
 			postMessage(payload)
 			log.Printf("Received a message: %s", d.Body)
-			ch.InsertMessage(payload.From, payload.Message)
+			for _, recipient := range payload.To {
+				log.Println(recipient.Email)
+				ch.InsertMessage(payload.From, payload.Message, recipient.Email)
+				log.Println("insert Successful")
+			}
 		}
 	}()
-
 	<-forever
 }
 
 func postMessage(payload MessagePayload) error {
-	content := payload.Message
-	from := mail.NewEmail("User", payload.From)
-	subject := "Email from teacher"
-	to := mail.NewEmail("Example User", payload.To)
-	htmlContent := "<strong>Important!</strong>"
-	message := mail.NewSingleEmail(from, subject, to, content, htmlContent)
-	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
-	response, err := client.Send(message)
-	if err != nil {
-		log.Println(err)
-		log.Println("Did not send")
-	} else {
-		fmt.Println(response.StatusCode)
-		fmt.Println(response.Body)
-		fmt.Println(response.Headers)
+	for _, recipient := range payload.To {
+		content := payload.Message
+		from := mail.NewEmail("User", payload.From)
+		subject := "Email from teacher"
+		to := mail.NewEmail("Example User", recipient.Email)
+		htmlContent := "<strong>Important!</strong>"
+		message := mail.NewSingleEmail(from, subject, to, content, htmlContent)
+		client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
+		response, err := client.Send(message)
+		if err != nil {
+			log.Println(err)
+			log.Println("Did not send")
+		} else {
+			fmt.Println(response.StatusCode)
+			fmt.Println(response.Body)
+			fmt.Println(response.Headers)
+		}
 	}
 	return nil
 }
 
-func (ch *MessageDB) InsertMessage(lectureEmail string, msg string) (int64, error) {
-	res, err := ch.db.Exec("INSERT INTO message (lecturerEmail ,content) VALUES (?,?)", lectureEmail, msg)
+func (ch *MessageDB) InsertMessage(lectureEmail string, msg string, toEmail string) (int64, error) {
+	res, err := ch.db.Exec("INSERT INTO message (lecturerEmail , content, toEmail) VALUES (?,?,?)", lectureEmail, msg, toEmail)
 	if err != nil {
 		return 0, err
 	}
@@ -112,6 +121,7 @@ func (ch *MessageDB) InsertMessage(lectureEmail string, msg string) (int64, erro
 	if err != nil {
 		return 0, err
 	}
+	log.Println("inserting is working", id)
 	return id, nil
 }
 

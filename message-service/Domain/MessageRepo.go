@@ -11,7 +11,7 @@ import (
 type MessageRepository interface {
 	FindAll() ([]Message, error)
 	FindById(id string) (*Message, *AppError)
-	FindMessageByLecturerEmail(lectureEmail string) (*Message, *AppError)
+	FindMessageByLecturerEmail(lecturerEmail string) ([]Message, *AppError)
 }
 
 type MessageRepoDB struct {
@@ -21,15 +21,13 @@ type MessageRepoDB struct {
 func (ch MessageRepoDB) FindAll() ([]Message, error) {
 	findall_sql := "SELECT * FROM message"
 	rows, err := ch.db.Query(findall_sql)
-
 	if err != nil {
 		log.Println("error executing sql")
 	}
-
 	messages := make([]Message, 0)
 	for rows.Next() {
 		var message Message
-		err = rows.Scan(&message.MessageID, &message.LecturerEmail, &message.Content)
+		err = rows.Scan(&message.MessageID, &message.LecturerEmail, &message.ToEmail, &message.Content)
 		if err != nil {
 			log.Println("Error scanning rows" + err.Error())
 		}
@@ -40,7 +38,7 @@ func (ch MessageRepoDB) FindAll() ([]Message, error) {
 
 func (ch MessageRepoDB) FindById(ID string) (*Message, *AppError) {
 	var message Message
-	err := ch.db.QueryRow("SELECT * FROM message WHERE messageID=?", ID).Scan(&message.MessageID, &message.LecturerEmail, &message.Content)
+	err := ch.db.QueryRow("SELECT * FROM message WHERE messageID=?", ID).Scan(&message.MessageID, &message.LecturerEmail, &message.ToEmail, &message.Content)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, NotFoundError("Message not found")
@@ -52,9 +50,9 @@ func (ch MessageRepoDB) FindById(ID string) (*Message, *AppError) {
 	return &message, nil
 }
 
-func (ch MessageRepoDB) FindMessageByLecturerEmail(lecturerEmail string) (*Message, *AppError) {
-	var message Message
-	err := ch.db.QueryRow("SELECT * FROM message WHERE lecturerEmail=?", lecturerEmail).Scan(&message.MessageID, &message.LecturerEmail, &message.Content)
+func (ch MessageRepoDB) FindMessageByLecturerEmail(lecturerEmail string) ([]Message, *AppError) {
+	var messages []Message
+	rows, err := ch.db.Query("SELECT * FROM message WHERE lecturerEmail=?", lecturerEmail)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, NotFoundError("Message not found")
@@ -63,7 +61,17 @@ func (ch MessageRepoDB) FindMessageByLecturerEmail(lecturerEmail string) (*Messa
 			return nil, UnexpectedError("Unexpected db error")
 		}
 	}
-	return &message, nil
+	defer rows.Close()
+	for rows.Next() {
+		var message Message
+		err := rows.Scan(&message.MessageID, &message.LecturerEmail, &message.ToEmail, &message.Content)
+		if err != nil {
+			log.Println("Error scanning rows ById" + err.Error())
+			return nil, UnexpectedError("Unexpected db error")
+		}
+		messages = append(messages, message)
+	}
+	return messages, nil
 }
 
 func NewMessageRepositoryDB() MessageRepoDB {
