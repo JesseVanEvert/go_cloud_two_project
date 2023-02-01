@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"lecturer/ent"
 	"log"
@@ -11,6 +10,11 @@ import (
 	"os"
 	"time"
 
+	ls "lecturer/services"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/jackc/pgconn"
 	_ "github.com/jackc/pgx/v4"
@@ -23,8 +27,33 @@ const webPort = "80"
 
 type Config struct {
 	Rabbit *amqp.Connection
+	LecturerService ls.LecturerService
 }
 
+func (c *Config) registerRoutes() {
+	mux := chi.NewRouter()
+
+	// specify who is allowed to connect
+	mux.Use(cors.Handler(cors.Options{
+		AllowedOrigins: []string{"https://*", "http://*"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders: []string{"Link"},
+		AllowCredentials: true,
+		MaxAge: 300,
+	}))
+
+	mux.Use(middleware.Heartbeat("/ping"))
+
+	//mux.Post("/", app.Broker)
+
+	mux.Post("/handle", c.handleSubmission)
+	mux.Post("/createLecturer", c.createLecturer)
+	//mux.Post("/handle", app.HandleSubmission)
+	//mux.Post("/createLecturer", app.CreateLecturer)
+	//mux.Post("/getAllLecturers", app.GetAllLecturers)
+	http.ListenAndServe(":8080", mux)
+}
 func main() {
 
 	// connect to database
@@ -47,24 +76,26 @@ func main() {
 	}
 
 	defer rabbitConn.Close()
-	
-	app := Config{
-		Rabbit: rabbitConn,
-	}
 
 	log.Printf("Starting broker service on port %s\n", webPort)
 
-	// define http server
-	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", webPort),
-		Handler: app.routes(),
+	c := Config{
+		Rabbit: rabbitConn,
 	}
 
+	c.registerRoutes()
+
+	// define http server
+	/*srv := &http.Server{
+		Addr:    fmt.Sprintf(":%s", webPort),
+		Handler: app.registerRoutes(),
+	}*/
+
 	// start the server
-	err = srv.ListenAndServe()
+	/*err = srv.ListenAndServe()
 	if err != nil {
 		log.Panic(err)
-	}
+	}*/
 }
 
 func connect() (*amqp.Connection, error) {
@@ -98,41 +129,4 @@ func connect() (*amqp.Connection, error) {
 	return connection, nil
 }
 
-func openDB(dsn string) (*sql.DB, error) {
-	db, err := sql.Open("pgx", dsn)
-	if err != nil {
-		return nil, err
-	}
 
-	err = db.Ping()
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
-}
-
-func connectToDB() *sql.DB {
-	dsn := os.Getenv("DSN")
-	var counts int64
-
-	for {
-		connection, err := openDB(dsn)
-		if err != nil {
-			log.Println("Postgres not yet ready ...")
-			counts++
-		} else {
-			log.Println("Connected to Postgres!")
-			return connection
-		}
-
-		if counts > 10 {
-			log.Println(err)
-			return nil
-		}
-
-		log.Println("Backing off for two seconds....")
-		time.Sleep(2 * time.Second)
-		continue
-	}
-}

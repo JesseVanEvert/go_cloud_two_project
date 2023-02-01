@@ -2,9 +2,13 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"lecturer/ent"
 	"lecturer/event"
+
 	"net/http"
 )
 
@@ -26,6 +30,12 @@ type AuthPayload struct {
 	Password string `json:"password"`
 }
 
+type LecturerPayload struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+}
+
 type LogPayload struct {
 	Name string `json:"name"`
 	Data string `json:"data"`
@@ -40,9 +50,10 @@ func (app *Config) Broker(w http.ResponseWriter, r *http.Request) {
 	_ = app.writeJSON(w, http.StatusOK, payload)
 }
 
+
 // HandleSubmission is the main point of entry into the broker. It accepts a JSON
 // payload and performs an action based on the value of "action" in that JSON.
-func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
+func (app *Config) handleSubmission(w http.ResponseWriter, r *http.Request) {
 	var requestPayload RequestPayload
 
 	err := app.readJSON(w, r, &requestPayload)
@@ -52,8 +63,6 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch requestPayload.Action {
-	case "auth":
-		app.authenticate(w, requestPayload.Auth)
 	case "message":
 		app.putMessageOnQueue(w, requestPayload.Message)
 	default:
@@ -96,58 +105,6 @@ func (app *Config) logItem(w http.ResponseWriter, entry LogPayload) {
 
 }
 
-// authenticate calls the authentication microservice and sends back the appropriate response
-func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
-	// create some json we'll send to the auth microservice
-	jsonData, _ := json.MarshalIndent(a, "", "\t")
-
-	// call the service
-	request, err := http.NewRequest("POST", "http://authentication-service/authenticate", bytes.NewBuffer(jsonData))
-	if err != nil {
-		app.errorJSON(w, err)
-		return
-	}
-
-	client := &http.Client{}
-	response, err := client.Do(request)
-	if err != nil {
-		app.errorJSON(w, err)
-		return
-	}
-	defer response.Body.Close()
-
-	// make sure we get back the correct status code
-	if response.StatusCode == http.StatusUnauthorized {
-		app.errorJSON(w, errors.New("invalid credentials"))
-		return
-	} else if response.StatusCode != http.StatusAccepted {
-		app.errorJSON(w, errors.New("error calling auth service"))
-		return
-	}
-
-	// create a variable we'll read response.Body into
-	var jsonFromService jsonResponse
-
-	// decode the json from the auth service
-	err = json.NewDecoder(response.Body).Decode(&jsonFromService)
-	if err != nil {
-		app.errorJSON(w, err)
-		return
-	}
-
-	if jsonFromService.Error {
-		app.errorJSON(w, err, http.StatusUnauthorized)
-		return
-	}
-
-	var payload jsonResponse
-	payload.Error = false
-	payload.Message = "Authenticated!"
-	payload.Data = jsonFromService.Data
-
-	app.writeJSON(w, http.StatusAccepted, payload)
-}
-
 func (app *Config) putMessageOnQueue(w http.ResponseWriter, msg MessagePayload) {
 
 	err := app.pushToQueue(msg.From, msg.To, msg.Message)
@@ -184,3 +141,77 @@ func (app *Config) pushToQueue(from, to, message string) error {
 	}
 	return nil
 }
+
+func (c *Config) createLecturer(w http.ResponseWriter, lect *http.Request) {
+	var lecturerPayload LecturerPayload
+	error2 := c.readJSON(w, lect, &lecturerPayload)
+
+	if error2 != nil {
+		c.errorJSON(w, error2)
+		return 
+	}
+
+	var lect2 *ent.Lecturer = &ent.Lecturer{
+		FirstName: lecturerPayload.FirstName,
+		LastName: lecturerPayload.LastName,
+		Email: lecturerPayload.Email,
+	}
+
+	lect3, error3 := c.LecturerService.CreateLecturer(lect2)
+
+	var payload jsonResponse
+
+	if error3 != nil {
+		payload.Error = true
+		payload.Message = "Error creating lecturer"
+		payload.Data = error3
+		c.writeJSON(w, http.StatusBadRequest, payload)
+		return
+	}
+
+	payload.Error = false
+	payload.Message = "Created lecturer"
+	payload.Data = lect3
+
+	c.writeJSON(w, http.StatusAccepted, payload)
+}
+
+func addLecturerToClass(ctx context.Context, client *ent.Client, lecturerID, classID int) error {
+	_, err := client.Class.
+		UpdateOneID(classID).
+		AddClassLecturerIDs(lecturerID).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("adding lecturer to class: %w", err)
+	}
+	return nil
+}
+
+func (app *Config) getAllLecturers(w http.ResponseWriter, lect *http.Request)  {
+
+	ctx :=  context.Background()
+	client := ent.Client{}
+
+	lecturers, err := client.Lecturer.
+		Query().
+		All(ctx)
+	if err != nil {
+		fmt.Println("getting all lecturers: %w", err)
+		return 
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusAccepted)
+	json.NewEncoder(w).Encode(lecturers)
+}
+
+func getAllClasses(ctx context.Context, client *ent.Client) ([]*ent.Class, error) {
+	classes, err := client.Class.
+		Query().
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting all classes: %w", err)
+	}
+	return classes, nil
+}
+

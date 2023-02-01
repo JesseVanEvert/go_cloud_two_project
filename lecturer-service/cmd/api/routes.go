@@ -23,9 +23,13 @@ func (app *Config) routes() http.Handler {
 
 	mux.Use(middleware.Heartbeat("/ping"))
 
-	mux.Post("/", app.Broker)
+	//mux.Post("/", app.Broker)
 
-	mux.Post("/handle", app.HandleSubmission)
+	mux.Post("/handle", app.handleSubmission)
+	mux.Post("/createLecturer", app.createLecturer)
+	//mux.Post("/handle", app.HandleSubmission)
+	//mux.Post("/createLecturer", app.CreateLecturer)
+	//mux.Post("/getAllLecturers", app.GetAllLecturers)
 
 	return mux
 }
