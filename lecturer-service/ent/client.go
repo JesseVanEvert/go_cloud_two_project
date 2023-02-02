@@ -11,7 +11,6 @@ import (
 	"lecturer/ent/migrate"
 
 	"lecturer/ent/class"
-	"lecturer/ent/classlecturer"
 	"lecturer/ent/lecturer"
 
 	"entgo.io/ent/dialect"
@@ -26,8 +25,6 @@ type Client struct {
 	Schema *migrate.Schema
 	// Class is the client for interacting with the Class builders.
 	Class *ClassClient
-	// ClassLecturer is the client for interacting with the ClassLecturer builders.
-	ClassLecturer *ClassLecturerClient
 	// Lecturer is the client for interacting with the Lecturer builders.
 	Lecturer *LecturerClient
 }
@@ -44,7 +41,6 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Class = NewClassClient(c.config)
-	c.ClassLecturer = NewClassLecturerClient(c.config)
 	c.Lecturer = NewLecturerClient(c.config)
 }
 
@@ -77,11 +73,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:           ctx,
-		config:        cfg,
-		Class:         NewClassClient(cfg),
-		ClassLecturer: NewClassLecturerClient(cfg),
-		Lecturer:      NewLecturerClient(cfg),
+		ctx:      ctx,
+		config:   cfg,
+		Class:    NewClassClient(cfg),
+		Lecturer: NewLecturerClient(cfg),
 	}, nil
 }
 
@@ -99,11 +94,10 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:           ctx,
-		config:        cfg,
-		Class:         NewClassClient(cfg),
-		ClassLecturer: NewClassLecturerClient(cfg),
-		Lecturer:      NewLecturerClient(cfg),
+		ctx:      ctx,
+		config:   cfg,
+		Class:    NewClassClient(cfg),
+		Lecturer: NewLecturerClient(cfg),
 	}, nil
 }
 
@@ -133,7 +127,6 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Class.Use(hooks...)
-	c.ClassLecturer.Use(hooks...)
 	c.Lecturer.Use(hooks...)
 }
 
@@ -141,7 +134,6 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Class.Intercept(interceptors...)
-	c.ClassLecturer.Intercept(interceptors...)
 	c.Lecturer.Intercept(interceptors...)
 }
 
@@ -150,8 +142,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *ClassMutation:
 		return c.Class.mutate(ctx, m)
-	case *ClassLecturerMutation:
-		return c.ClassLecturer.mutate(ctx, m)
 	case *LecturerMutation:
 		return c.Lecturer.mutate(ctx, m)
 	default:
@@ -252,15 +242,15 @@ func (c *ClassClient) GetX(ctx context.Context, id int) *Class {
 	return obj
 }
 
-// QueryClassLecturers queries the class_lecturers edge of a Class.
-func (c *ClassClient) QueryClassLecturers(cl *Class) *ClassLecturerQuery {
-	query := (&ClassLecturerClient{config: c.config}).Query()
+// QueryLecturers queries the lecturers edge of a Class.
+func (c *ClassClient) QueryLecturers(cl *Class) *LecturerQuery {
+	query := (&LecturerClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := cl.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(class.Table, class.FieldID, id),
-			sqlgraph.To(classlecturer.Table, classlecturer.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, class.ClassLecturersTable, class.ClassLecturersColumn),
+			sqlgraph.To(lecturer.Table, lecturer.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, class.LecturersTable, class.LecturersPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(cl.driver.Dialect(), step)
 		return fromV, nil
@@ -290,156 +280,6 @@ func (c *ClassClient) mutate(ctx context.Context, m *ClassMutation) (Value, erro
 		return (&ClassDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Class mutation op: %q", m.Op())
-	}
-}
-
-// ClassLecturerClient is a client for the ClassLecturer schema.
-type ClassLecturerClient struct {
-	config
-}
-
-// NewClassLecturerClient returns a client for the ClassLecturer from the given config.
-func NewClassLecturerClient(c config) *ClassLecturerClient {
-	return &ClassLecturerClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `classlecturer.Hooks(f(g(h())))`.
-func (c *ClassLecturerClient) Use(hooks ...Hook) {
-	c.hooks.ClassLecturer = append(c.hooks.ClassLecturer, hooks...)
-}
-
-// Use adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `classlecturer.Intercept(f(g(h())))`.
-func (c *ClassLecturerClient) Intercept(interceptors ...Interceptor) {
-	c.inters.ClassLecturer = append(c.inters.ClassLecturer, interceptors...)
-}
-
-// Create returns a builder for creating a ClassLecturer entity.
-func (c *ClassLecturerClient) Create() *ClassLecturerCreate {
-	mutation := newClassLecturerMutation(c.config, OpCreate)
-	return &ClassLecturerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of ClassLecturer entities.
-func (c *ClassLecturerClient) CreateBulk(builders ...*ClassLecturerCreate) *ClassLecturerCreateBulk {
-	return &ClassLecturerCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for ClassLecturer.
-func (c *ClassLecturerClient) Update() *ClassLecturerUpdate {
-	mutation := newClassLecturerMutation(c.config, OpUpdate)
-	return &ClassLecturerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *ClassLecturerClient) UpdateOne(cl *ClassLecturer) *ClassLecturerUpdateOne {
-	mutation := newClassLecturerMutation(c.config, OpUpdateOne, withClassLecturer(cl))
-	return &ClassLecturerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *ClassLecturerClient) UpdateOneID(id int) *ClassLecturerUpdateOne {
-	mutation := newClassLecturerMutation(c.config, OpUpdateOne, withClassLecturerID(id))
-	return &ClassLecturerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for ClassLecturer.
-func (c *ClassLecturerClient) Delete() *ClassLecturerDelete {
-	mutation := newClassLecturerMutation(c.config, OpDelete)
-	return &ClassLecturerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *ClassLecturerClient) DeleteOne(cl *ClassLecturer) *ClassLecturerDeleteOne {
-	return c.DeleteOneID(cl.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ClassLecturerClient) DeleteOneID(id int) *ClassLecturerDeleteOne {
-	builder := c.Delete().Where(classlecturer.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ClassLecturerDeleteOne{builder}
-}
-
-// Query returns a query builder for ClassLecturer.
-func (c *ClassLecturerClient) Query() *ClassLecturerQuery {
-	return &ClassLecturerQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeClassLecturer},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a ClassLecturer entity by its id.
-func (c *ClassLecturerClient) Get(ctx context.Context, id int) (*ClassLecturer, error) {
-	return c.Query().Where(classlecturer.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *ClassLecturerClient) GetX(ctx context.Context, id int) *ClassLecturer {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryClass queries the class edge of a ClassLecturer.
-func (c *ClassLecturerClient) QueryClass(cl *ClassLecturer) *ClassQuery {
-	query := (&ClassClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := cl.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(classlecturer.Table, classlecturer.FieldID, id),
-			sqlgraph.To(class.Table, class.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, classlecturer.ClassTable, classlecturer.ClassColumn),
-		)
-		fromV = sqlgraph.Neighbors(cl.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryLecturer queries the lecturer edge of a ClassLecturer.
-func (c *ClassLecturerClient) QueryLecturer(cl *ClassLecturer) *LecturerQuery {
-	query := (&LecturerClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := cl.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(classlecturer.Table, classlecturer.FieldID, id),
-			sqlgraph.To(lecturer.Table, lecturer.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, classlecturer.LecturerTable, classlecturer.LecturerColumn),
-		)
-		fromV = sqlgraph.Neighbors(cl.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *ClassLecturerClient) Hooks() []Hook {
-	return c.hooks.ClassLecturer
-}
-
-// Interceptors returns the client interceptors.
-func (c *ClassLecturerClient) Interceptors() []Interceptor {
-	return c.inters.ClassLecturer
-}
-
-func (c *ClassLecturerClient) mutate(ctx context.Context, m *ClassLecturerMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&ClassLecturerCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&ClassLecturerUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&ClassLecturerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&ClassLecturerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown ClassLecturer mutation op: %q", m.Op())
 	}
 }
 
@@ -536,15 +376,15 @@ func (c *LecturerClient) GetX(ctx context.Context, id int) *Lecturer {
 	return obj
 }
 
-// QueryClassLecturers queries the class_lecturers edge of a Lecturer.
-func (c *LecturerClient) QueryClassLecturers(l *Lecturer) *ClassLecturerQuery {
-	query := (&ClassLecturerClient{config: c.config}).Query()
+// QueryClasses queries the classes edge of a Lecturer.
+func (c *LecturerClient) QueryClasses(l *Lecturer) *ClassQuery {
+	query := (&ClassClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := l.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(lecturer.Table, lecturer.FieldID, id),
-			sqlgraph.To(classlecturer.Table, classlecturer.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, lecturer.ClassLecturersTable, lecturer.ClassLecturersColumn),
+			sqlgraph.To(class.Table, class.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, lecturer.ClassesTable, lecturer.ClassesPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(l.driver.Dialect(), step)
 		return fromV, nil

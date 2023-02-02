@@ -6,7 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"lecturer/ent/classlecturer"
+	"lecturer/ent/class"
 	"lecturer/ent/lecturer"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -52,19 +52,19 @@ func (lc *LecturerCreate) SetNillableDeletedAt(s *string) *LecturerCreate {
 	return lc
 }
 
-// AddClassLecturerIDs adds the "class_lecturers" edge to the ClassLecturer entity by IDs.
-func (lc *LecturerCreate) AddClassLecturerIDs(ids ...int) *LecturerCreate {
-	lc.mutation.AddClassLecturerIDs(ids...)
+// AddClassIDs adds the "classes" edge to the Class entity by IDs.
+func (lc *LecturerCreate) AddClassIDs(ids ...int) *LecturerCreate {
+	lc.mutation.AddClassIDs(ids...)
 	return lc
 }
 
-// AddClassLecturers adds the "class_lecturers" edges to the ClassLecturer entity.
-func (lc *LecturerCreate) AddClassLecturers(c ...*ClassLecturer) *LecturerCreate {
+// AddClasses adds the "classes" edges to the Class entity.
+func (lc *LecturerCreate) AddClasses(c ...*Class) *LecturerCreate {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return lc.AddClassLecturerIDs(ids...)
+	return lc.AddClassIDs(ids...)
 }
 
 // Mutation returns the LecturerMutation object of the builder.
@@ -158,17 +158,17 @@ func (lc *LecturerCreate) createSpec() (*Lecturer, *sqlgraph.CreateSpec) {
 		_spec.SetField(lecturer.FieldDeletedAt, field.TypeString, value)
 		_node.DeletedAt = value
 	}
-	if nodes := lc.mutation.ClassLecturersIDs(); len(nodes) > 0 {
+	if nodes := lc.mutation.ClassesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   lecturer.ClassLecturersTable,
-			Columns: []string{lecturer.ClassLecturersColumn},
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   lecturer.ClassesTable,
+			Columns: lecturer.ClassesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: classlecturer.FieldID,
+					Column: class.FieldID,
 				},
 			},
 		}

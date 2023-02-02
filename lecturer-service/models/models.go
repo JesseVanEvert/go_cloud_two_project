@@ -34,6 +34,10 @@ type ClassLecturerPayload struct {
 	LecturerId int `json:"lecturer_id"`
 }
 
+type IDPayload struct {
+	ID int `json:"id"`
+}
+
 type JsonResponse struct {
 	Error   bool   `json:"error"`
 	Message string `json:"message"`

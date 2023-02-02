@@ -124,24 +124,24 @@ func NameContainsFold(v string) predicate.Class {
 	return predicate.Class(sql.FieldContainsFold(FieldName, v))
 }
 
-// HasClassLecturers applies the HasEdge predicate on the "class_lecturers" edge.
-func HasClassLecturers() predicate.Class {
+// HasLecturers applies the HasEdge predicate on the "lecturers" edge.
+func HasLecturers() predicate.Class {
 	return predicate.Class(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ClassLecturersTable, ClassLecturersColumn),
+			sqlgraph.Edge(sqlgraph.M2M, false, LecturersTable, LecturersPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasClassLecturersWith applies the HasEdge predicate on the "class_lecturers" edge with a given conditions (other predicates).
-func HasClassLecturersWith(preds ...predicate.ClassLecturer) predicate.Class {
+// HasLecturersWith applies the HasEdge predicate on the "lecturers" edge with a given conditions (other predicates).
+func HasLecturersWith(preds ...predicate.Lecturer) predicate.Class {
 	return predicate.Class(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ClassLecturersInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ClassLecturersTable, ClassLecturersColumn),
+			sqlgraph.To(LecturersInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, LecturersTable, LecturersPrimaryKey...),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

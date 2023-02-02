@@ -9,17 +9,15 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
-	// EdgeClassLecturers holds the string denoting the class_lecturers edge name in mutations.
-	EdgeClassLecturers = "class_lecturers"
+	// EdgeLecturers holds the string denoting the lecturers edge name in mutations.
+	EdgeLecturers = "lecturers"
 	// Table holds the table name of the class in the database.
 	Table = "classes"
-	// ClassLecturersTable is the table that holds the class_lecturers relation/edge.
-	ClassLecturersTable = "class_lecturers"
-	// ClassLecturersInverseTable is the table name for the ClassLecturer entity.
-	// It exists in this package in order to avoid circular dependency with the "classlecturer" package.
-	ClassLecturersInverseTable = "class_lecturers"
-	// ClassLecturersColumn is the table column denoting the class_lecturers relation/edge.
-	ClassLecturersColumn = "class_class_lecturers"
+	// LecturersTable is the table that holds the lecturers relation/edge. The primary key declared below.
+	LecturersTable = "class_lecturers"
+	// LecturersInverseTable is the table name for the Lecturer entity.
+	// It exists in this package in order to avoid circular dependency with the "lecturer" package.
+	LecturersInverseTable = "lecturers"
 )
 
 // Columns holds all SQL columns for class fields.
@@ -27,6 +25,12 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 }
+
+var (
+	// LecturersPrimaryKey and LecturersColumn2 are the table columns denoting the
+	// primary key for the lecturers relation (M2M).
+	LecturersPrimaryKey = []string{"class_id", "lecturer_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {

@@ -20,18 +20,6 @@ func (f ClassFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ClassMutation", m)
 }
 
-// The ClassLecturerFunc type is an adapter to allow the use of ordinary
-// function as ClassLecturer mutator.
-type ClassLecturerFunc func(context.Context, *ent.ClassLecturerMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ClassLecturerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.ClassLecturerMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ClassLecturerMutation", m)
-}
-
 // The LecturerFunc type is an adapter to allow the use of ordinary
 // function as Lecturer mutator.
 type LecturerFunc func(context.Context, *ent.LecturerMutation) (ent.Value, error)

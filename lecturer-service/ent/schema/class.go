@@ -21,6 +21,6 @@ func (Class) Fields() []ent.Field {
 // Edges of the Class.
 func (Class) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("class_lecturers", ClassLecturer.Type),
+		edge.To("lecturers", Lecturer.Type),
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"lecturer/ent"
+	"lecturer/ent/class"
 	"lecturer/ent/lecturer"
 	"lecturer/models"
 )
@@ -44,10 +45,15 @@ func (dl LecturerRepositoryDefault) GetAllClasses() ([]*ent.Class, error) {
 }
 
 func (dl LecturerRepositoryDefault) AddLecturerToClass(lecturerID, classID int) (string, error) {
-	_, err := dl.client.ClassLecturer.Create().SetClassID(classID).SetLecturerID(lecturerID).Save(dl.ctx)
-	if err != nil {
-		return "Adding lecturer failed", fmt.Errorf("adding lecturer to class: %w", err)
+	class, error := dl.client.Class.Query().Where(class.ID(classID)).Only(dl.ctx)
+	lecturer, error := dl.client.Lecturer.Query().Where(lecturer.ID(lecturerID)).Only(dl.ctx)
+	lect, error := lecturer.Update().AddClasses(class).Save(dl.ctx)
+
+	if error != nil {
+		fmt.Print(lect)
+		return "Adding lecturer failed", fmt.Errorf("adding lecturer to class: %w", error)
 	}
+
 	return "Adding lecturer succeeded", nil
 }
 

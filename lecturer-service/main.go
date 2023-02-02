@@ -35,15 +35,14 @@ type Config struct {
 
 
 func (c *Config) registerRoutes() {
-
-
 	mux := chi.NewRouter()
-
 
 	mux.HandleFunc("/createLecturer", c.CreateLecturer)
 	mux.HandleFunc("/getAllLecturers", c.GetAllLecturers)
 	mux.HandleFunc("/addLecturerToClass", c.AddLecturerToClass)
-	mux.HandleFunc("/handle", c.handleSubmission)
+	mux.HandleFunc("/sendMessage", c.SendMessage)
+	mux.HandleFunc("/getAllClasses", c.GetAllClasses)
+	mux.HandleFunc("/getLecturerByID", c.GetLecturerByID)
 
 	http.ListenAndServe(":8080", mux)
 }
@@ -51,7 +50,7 @@ func main() {
 
 
 	// connect to database
-	client, err := ent.Open("mysql", "root:@tcp(localhost:3306)/lecturer?parseTime=True")
+	client, err := ent.Open("mysql", "root:@tcp(localhost:3306)/lecturerTest?parseTime=True")
 
 	if err != nil {
         log.Fatalf("failed opening connection to mysql: %v", err)
@@ -125,7 +124,7 @@ func connect() (*amqp.Connection, error) {
 
 // HandleSubmission is the main point of entry into the broker. It accepts a JSON
 // payload and performs an action based on the value of "action" in that JSON.
-func (c *Config ) handleSubmission(w http.ResponseWriter, r *http.Request) {
+func (c *Config ) SendMessage(w http.ResponseWriter, r *http.Request) {
 	var requestPayload models.RequestPayload
 	
 	err := c.Helpers.ReadJSON(w, r, &requestPayload)
@@ -206,6 +205,23 @@ func (c *Config ) CreateLecturer(w http.ResponseWriter, lect *http.Request) {
 	c.Helpers.WriteJSON(w, http.StatusAccepted, payload)
 }
 
+func (c *Config) GetAllClasses(w http.ResponseWriter, r *http.Request) {
+	classes, error := c.Service.GetAllClasses()
+
+	if(error != nil){
+		c.Helpers.ErrorJSON(w, error)
+		return
+	}
+
+	var payload models.JsonResponse
+
+	payload.Error = false
+	payload.Message = "All classes"
+	payload.Data = classes
+
+	c.Helpers.WriteJSON(w, http.StatusAccepted, payload)
+}
+
 func (c *Config ) AddLecturerToClass(w http.ResponseWriter, lect *http.Request) {
 	var classLecturerPayload models.ClassLecturerPayload
 	error := c.Helpers.ReadJSON(w, lect, &classLecturerPayload)
@@ -230,7 +246,7 @@ func (c *Config ) AddLecturerToClass(w http.ResponseWriter, lect *http.Request) 
 	c.Helpers.WriteJSON(w, http.StatusAccepted, payload)
 }
 
-func (c *Config ) GetAllLecturers(w http.ResponseWriter, lect *http.Request)  {
+func (c *Config ) GetAllLecturers(w http.ResponseWriter, request *http.Request)  {
 	lecturers, err := c.Service.GetAllLecturers()
 
 	if err != nil {
@@ -246,15 +262,30 @@ func (c *Config ) GetAllLecturers(w http.ResponseWriter, lect *http.Request)  {
 	c.Helpers.WriteJSON(w, http.StatusOK, payload)
 }
 
-func (c *Config )  GetAllClasses(w http.ResponseWriter, lect *http.Request) ([]*ent.Class, error) {
-	classes, err := c.Service.GetAllClasses()
+func (c *Config) GetLecturerByID (w http.ResponseWriter, request *http.Request) {
+	var idPayload models.IDPayload
+	err := c.Helpers.ReadJSON(w, request, &idPayload)
 
 	if err != nil {
 		c.Helpers.ErrorJSON(w, err)
-		return nil, err
+		return
 	}
-	return classes, nil
+
+	lecturer, err := c.Service.GetLecturerByID(idPayload.ID)
+
+	if err != nil {
+		c.Helpers.ErrorJSON(w, err)
+		return
+	}
+
+	var payload models.JsonResponse
+	payload.Error = false
+	payload.Message = "Retrieved lecturer"
+	payload.Data = lecturer
+
+	c.Helpers.WriteJSON(w, http.StatusOK, payload)
 }
+
 
 
 

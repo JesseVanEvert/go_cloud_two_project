@@ -30,20 +30,20 @@ type Lecturer struct {
 
 // LecturerEdges holds the relations/edges for other nodes in the graph.
 type LecturerEdges struct {
-	// ClassLecturers holds the value of the class_lecturers edge.
-	ClassLecturers []*ClassLecturer `json:"class_lecturers,omitempty"`
+	// Classes holds the value of the classes edge.
+	Classes []*Class `json:"classes,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
-// ClassLecturersOrErr returns the ClassLecturers value or an error if the edge
+// ClassesOrErr returns the Classes value or an error if the edge
 // was not loaded in eager-loading.
-func (e LecturerEdges) ClassLecturersOrErr() ([]*ClassLecturer, error) {
+func (e LecturerEdges) ClassesOrErr() ([]*Class, error) {
 	if e.loadedTypes[0] {
-		return e.ClassLecturers, nil
+		return e.Classes, nil
 	}
-	return nil, &NotLoadedError{edge: "class_lecturers"}
+	return nil, &NotLoadedError{edge: "classes"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -105,9 +105,9 @@ func (l *Lecturer) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// QueryClassLecturers queries the "class_lecturers" edge of the Lecturer entity.
-func (l *Lecturer) QueryClassLecturers() *ClassLecturerQuery {
-	return NewLecturerClient(l.config).QueryClassLecturers(l)
+// QueryClasses queries the "classes" edge of the Lecturer entity.
+func (l *Lecturer) QueryClasses() *ClassQuery {
+	return NewLecturerClient(l.config).QueryClasses(l)
 }
 
 // Update returns a builder for updating this Lecturer.

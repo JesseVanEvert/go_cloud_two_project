@@ -7,11 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"lecturer/ent/class"
-	"lecturer/ent/classlecturer"
 	"lecturer/ent/lecturer"
 	"lecturer/ent/predicate"
 	"sync"
-	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -26,25 +24,24 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeClass         = "Class"
-	TypeClassLecturer = "ClassLecturer"
-	TypeLecturer      = "Lecturer"
+	TypeClass    = "Class"
+	TypeLecturer = "Lecturer"
 )
 
 // ClassMutation represents an operation that mutates the Class nodes in the graph.
 type ClassMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *int
-	name                   *string
-	clearedFields          map[string]struct{}
-	class_lecturers        map[int]struct{}
-	removedclass_lecturers map[int]struct{}
-	clearedclass_lecturers bool
-	done                   bool
-	oldValue               func(context.Context) (*Class, error)
-	predicates             []predicate.Class
+	op               Op
+	typ              string
+	id               *int
+	name             *string
+	clearedFields    map[string]struct{}
+	lecturers        map[int]struct{}
+	removedlecturers map[int]struct{}
+	clearedlecturers bool
+	done             bool
+	oldValue         func(context.Context) (*Class, error)
+	predicates       []predicate.Class
 }
 
 var _ ent.Mutation = (*ClassMutation)(nil)
@@ -181,58 +178,58 @@ func (m *ClassMutation) ResetName() {
 	m.name = nil
 }
 
-// AddClassLecturerIDs adds the "class_lecturers" edge to the ClassLecturer entity by ids.
-func (m *ClassMutation) AddClassLecturerIDs(ids ...int) {
-	if m.class_lecturers == nil {
-		m.class_lecturers = make(map[int]struct{})
+// AddLecturerIDs adds the "lecturers" edge to the Lecturer entity by ids.
+func (m *ClassMutation) AddLecturerIDs(ids ...int) {
+	if m.lecturers == nil {
+		m.lecturers = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.class_lecturers[ids[i]] = struct{}{}
+		m.lecturers[ids[i]] = struct{}{}
 	}
 }
 
-// ClearClassLecturers clears the "class_lecturers" edge to the ClassLecturer entity.
-func (m *ClassMutation) ClearClassLecturers() {
-	m.clearedclass_lecturers = true
+// ClearLecturers clears the "lecturers" edge to the Lecturer entity.
+func (m *ClassMutation) ClearLecturers() {
+	m.clearedlecturers = true
 }
 
-// ClassLecturersCleared reports if the "class_lecturers" edge to the ClassLecturer entity was cleared.
-func (m *ClassMutation) ClassLecturersCleared() bool {
-	return m.clearedclass_lecturers
+// LecturersCleared reports if the "lecturers" edge to the Lecturer entity was cleared.
+func (m *ClassMutation) LecturersCleared() bool {
+	return m.clearedlecturers
 }
 
-// RemoveClassLecturerIDs removes the "class_lecturers" edge to the ClassLecturer entity by IDs.
-func (m *ClassMutation) RemoveClassLecturerIDs(ids ...int) {
-	if m.removedclass_lecturers == nil {
-		m.removedclass_lecturers = make(map[int]struct{})
+// RemoveLecturerIDs removes the "lecturers" edge to the Lecturer entity by IDs.
+func (m *ClassMutation) RemoveLecturerIDs(ids ...int) {
+	if m.removedlecturers == nil {
+		m.removedlecturers = make(map[int]struct{})
 	}
 	for i := range ids {
-		delete(m.class_lecturers, ids[i])
-		m.removedclass_lecturers[ids[i]] = struct{}{}
+		delete(m.lecturers, ids[i])
+		m.removedlecturers[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedClassLecturers returns the removed IDs of the "class_lecturers" edge to the ClassLecturer entity.
-func (m *ClassMutation) RemovedClassLecturersIDs() (ids []int) {
-	for id := range m.removedclass_lecturers {
+// RemovedLecturers returns the removed IDs of the "lecturers" edge to the Lecturer entity.
+func (m *ClassMutation) RemovedLecturersIDs() (ids []int) {
+	for id := range m.removedlecturers {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ClassLecturersIDs returns the "class_lecturers" edge IDs in the mutation.
-func (m *ClassMutation) ClassLecturersIDs() (ids []int) {
-	for id := range m.class_lecturers {
+// LecturersIDs returns the "lecturers" edge IDs in the mutation.
+func (m *ClassMutation) LecturersIDs() (ids []int) {
+	for id := range m.lecturers {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetClassLecturers resets all changes to the "class_lecturers" edge.
-func (m *ClassMutation) ResetClassLecturers() {
-	m.class_lecturers = nil
-	m.clearedclass_lecturers = false
-	m.removedclass_lecturers = nil
+// ResetLecturers resets all changes to the "lecturers" edge.
+func (m *ClassMutation) ResetLecturers() {
+	m.lecturers = nil
+	m.clearedlecturers = false
+	m.removedlecturers = nil
 }
 
 // Where appends a list predicates to the ClassMutation builder.
@@ -369,8 +366,8 @@ func (m *ClassMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ClassMutation) AddedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.class_lecturers != nil {
-		edges = append(edges, class.EdgeClassLecturers)
+	if m.lecturers != nil {
+		edges = append(edges, class.EdgeLecturers)
 	}
 	return edges
 }
@@ -379,9 +376,9 @@ func (m *ClassMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *ClassMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case class.EdgeClassLecturers:
-		ids := make([]ent.Value, 0, len(m.class_lecturers))
-		for id := range m.class_lecturers {
+	case class.EdgeLecturers:
+		ids := make([]ent.Value, 0, len(m.lecturers))
+		for id := range m.lecturers {
 			ids = append(ids, id)
 		}
 		return ids
@@ -392,8 +389,8 @@ func (m *ClassMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ClassMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.removedclass_lecturers != nil {
-		edges = append(edges, class.EdgeClassLecturers)
+	if m.removedlecturers != nil {
+		edges = append(edges, class.EdgeLecturers)
 	}
 	return edges
 }
@@ -402,9 +399,9 @@ func (m *ClassMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *ClassMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case class.EdgeClassLecturers:
-		ids := make([]ent.Value, 0, len(m.removedclass_lecturers))
-		for id := range m.removedclass_lecturers {
+	case class.EdgeLecturers:
+		ids := make([]ent.Value, 0, len(m.removedlecturers))
+		for id := range m.removedlecturers {
 			ids = append(ids, id)
 		}
 		return ids
@@ -415,8 +412,8 @@ func (m *ClassMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ClassMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.clearedclass_lecturers {
-		edges = append(edges, class.EdgeClassLecturers)
+	if m.clearedlecturers {
+		edges = append(edges, class.EdgeLecturers)
 	}
 	return edges
 }
@@ -425,8 +422,8 @@ func (m *ClassMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *ClassMutation) EdgeCleared(name string) bool {
 	switch name {
-	case class.EdgeClassLecturers:
-		return m.clearedclass_lecturers
+	case class.EdgeLecturers:
+		return m.clearedlecturers
 	}
 	return false
 }
@@ -443,504 +440,30 @@ func (m *ClassMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *ClassMutation) ResetEdge(name string) error {
 	switch name {
-	case class.EdgeClassLecturers:
-		m.ResetClassLecturers()
+	case class.EdgeLecturers:
+		m.ResetLecturers()
 		return nil
 	}
 	return fmt.Errorf("unknown Class edge %s", name)
 }
 
-// ClassLecturerMutation represents an operation that mutates the ClassLecturer nodes in the graph.
-type ClassLecturerMutation struct {
-	config
-	op              Op
-	typ             string
-	id              *int
-	deleted_at      *time.Time
-	clearedFields   map[string]struct{}
-	class           *int
-	clearedclass    bool
-	lecturer        *int
-	clearedlecturer bool
-	done            bool
-	oldValue        func(context.Context) (*ClassLecturer, error)
-	predicates      []predicate.ClassLecturer
-}
-
-var _ ent.Mutation = (*ClassLecturerMutation)(nil)
-
-// classlecturerOption allows management of the mutation configuration using functional options.
-type classlecturerOption func(*ClassLecturerMutation)
-
-// newClassLecturerMutation creates new mutation for the ClassLecturer entity.
-func newClassLecturerMutation(c config, op Op, opts ...classlecturerOption) *ClassLecturerMutation {
-	m := &ClassLecturerMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeClassLecturer,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withClassLecturerID sets the ID field of the mutation.
-func withClassLecturerID(id int) classlecturerOption {
-	return func(m *ClassLecturerMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *ClassLecturer
-		)
-		m.oldValue = func(ctx context.Context) (*ClassLecturer, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().ClassLecturer.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withClassLecturer sets the old ClassLecturer of the mutation.
-func withClassLecturer(node *ClassLecturer) classlecturerOption {
-	return func(m *ClassLecturerMutation) {
-		m.oldValue = func(context.Context) (*ClassLecturer, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m ClassLecturerMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m ClassLecturerMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *ClassLecturerMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *ClassLecturerMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().ClassLecturer.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetDeletedAt sets the "deleted_at" field.
-func (m *ClassLecturerMutation) SetDeletedAt(t time.Time) {
-	m.deleted_at = &t
-}
-
-// DeletedAt returns the value of the "deleted_at" field in the mutation.
-func (m *ClassLecturerMutation) DeletedAt() (r time.Time, exists bool) {
-	v := m.deleted_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDeletedAt returns the old "deleted_at" field's value of the ClassLecturer entity.
-// If the ClassLecturer object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClassLecturerMutation) OldDeletedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
-	}
-	return oldValue.DeletedAt, nil
-}
-
-// ClearDeletedAt clears the value of the "deleted_at" field.
-func (m *ClassLecturerMutation) ClearDeletedAt() {
-	m.deleted_at = nil
-	m.clearedFields[classlecturer.FieldDeletedAt] = struct{}{}
-}
-
-// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
-func (m *ClassLecturerMutation) DeletedAtCleared() bool {
-	_, ok := m.clearedFields[classlecturer.FieldDeletedAt]
-	return ok
-}
-
-// ResetDeletedAt resets all changes to the "deleted_at" field.
-func (m *ClassLecturerMutation) ResetDeletedAt() {
-	m.deleted_at = nil
-	delete(m.clearedFields, classlecturer.FieldDeletedAt)
-}
-
-// SetClassID sets the "class" edge to the Class entity by id.
-func (m *ClassLecturerMutation) SetClassID(id int) {
-	m.class = &id
-}
-
-// ClearClass clears the "class" edge to the Class entity.
-func (m *ClassLecturerMutation) ClearClass() {
-	m.clearedclass = true
-}
-
-// ClassCleared reports if the "class" edge to the Class entity was cleared.
-func (m *ClassLecturerMutation) ClassCleared() bool {
-	return m.clearedclass
-}
-
-// ClassID returns the "class" edge ID in the mutation.
-func (m *ClassLecturerMutation) ClassID() (id int, exists bool) {
-	if m.class != nil {
-		return *m.class, true
-	}
-	return
-}
-
-// ClassIDs returns the "class" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ClassID instead. It exists only for internal usage by the builders.
-func (m *ClassLecturerMutation) ClassIDs() (ids []int) {
-	if id := m.class; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetClass resets all changes to the "class" edge.
-func (m *ClassLecturerMutation) ResetClass() {
-	m.class = nil
-	m.clearedclass = false
-}
-
-// SetLecturerID sets the "lecturer" edge to the Lecturer entity by id.
-func (m *ClassLecturerMutation) SetLecturerID(id int) {
-	m.lecturer = &id
-}
-
-// ClearLecturer clears the "lecturer" edge to the Lecturer entity.
-func (m *ClassLecturerMutation) ClearLecturer() {
-	m.clearedlecturer = true
-}
-
-// LecturerCleared reports if the "lecturer" edge to the Lecturer entity was cleared.
-func (m *ClassLecturerMutation) LecturerCleared() bool {
-	return m.clearedlecturer
-}
-
-// LecturerID returns the "lecturer" edge ID in the mutation.
-func (m *ClassLecturerMutation) LecturerID() (id int, exists bool) {
-	if m.lecturer != nil {
-		return *m.lecturer, true
-	}
-	return
-}
-
-// LecturerIDs returns the "lecturer" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// LecturerID instead. It exists only for internal usage by the builders.
-func (m *ClassLecturerMutation) LecturerIDs() (ids []int) {
-	if id := m.lecturer; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetLecturer resets all changes to the "lecturer" edge.
-func (m *ClassLecturerMutation) ResetLecturer() {
-	m.lecturer = nil
-	m.clearedlecturer = false
-}
-
-// Where appends a list predicates to the ClassLecturerMutation builder.
-func (m *ClassLecturerMutation) Where(ps ...predicate.ClassLecturer) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the ClassLecturerMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *ClassLecturerMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.ClassLecturer, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *ClassLecturerMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *ClassLecturerMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (ClassLecturer).
-func (m *ClassLecturerMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *ClassLecturerMutation) Fields() []string {
-	fields := make([]string, 0, 1)
-	if m.deleted_at != nil {
-		fields = append(fields, classlecturer.FieldDeletedAt)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *ClassLecturerMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case classlecturer.FieldDeletedAt:
-		return m.DeletedAt()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *ClassLecturerMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case classlecturer.FieldDeletedAt:
-		return m.OldDeletedAt(ctx)
-	}
-	return nil, fmt.Errorf("unknown ClassLecturer field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *ClassLecturerMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case classlecturer.FieldDeletedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDeletedAt(v)
-		return nil
-	}
-	return fmt.Errorf("unknown ClassLecturer field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *ClassLecturerMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *ClassLecturerMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *ClassLecturerMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown ClassLecturer numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *ClassLecturerMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(classlecturer.FieldDeletedAt) {
-		fields = append(fields, classlecturer.FieldDeletedAt)
-	}
-	return fields
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *ClassLecturerMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *ClassLecturerMutation) ClearField(name string) error {
-	switch name {
-	case classlecturer.FieldDeletedAt:
-		m.ClearDeletedAt()
-		return nil
-	}
-	return fmt.Errorf("unknown ClassLecturer nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *ClassLecturerMutation) ResetField(name string) error {
-	switch name {
-	case classlecturer.FieldDeletedAt:
-		m.ResetDeletedAt()
-		return nil
-	}
-	return fmt.Errorf("unknown ClassLecturer field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *ClassLecturerMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.class != nil {
-		edges = append(edges, classlecturer.EdgeClass)
-	}
-	if m.lecturer != nil {
-		edges = append(edges, classlecturer.EdgeLecturer)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *ClassLecturerMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case classlecturer.EdgeClass:
-		if id := m.class; id != nil {
-			return []ent.Value{*id}
-		}
-	case classlecturer.EdgeLecturer:
-		if id := m.lecturer; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *ClassLecturerMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *ClassLecturerMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *ClassLecturerMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedclass {
-		edges = append(edges, classlecturer.EdgeClass)
-	}
-	if m.clearedlecturer {
-		edges = append(edges, classlecturer.EdgeLecturer)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *ClassLecturerMutation) EdgeCleared(name string) bool {
-	switch name {
-	case classlecturer.EdgeClass:
-		return m.clearedclass
-	case classlecturer.EdgeLecturer:
-		return m.clearedlecturer
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *ClassLecturerMutation) ClearEdge(name string) error {
-	switch name {
-	case classlecturer.EdgeClass:
-		m.ClearClass()
-		return nil
-	case classlecturer.EdgeLecturer:
-		m.ClearLecturer()
-		return nil
-	}
-	return fmt.Errorf("unknown ClassLecturer unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *ClassLecturerMutation) ResetEdge(name string) error {
-	switch name {
-	case classlecturer.EdgeClass:
-		m.ResetClass()
-		return nil
-	case classlecturer.EdgeLecturer:
-		m.ResetLecturer()
-		return nil
-	}
-	return fmt.Errorf("unknown ClassLecturer edge %s", name)
-}
-
 // LecturerMutation represents an operation that mutates the Lecturer nodes in the graph.
 type LecturerMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *int
-	first_name             *string
-	last_name              *string
-	email                  *string
-	deleted_at             *string
-	clearedFields          map[string]struct{}
-	class_lecturers        map[int]struct{}
-	removedclass_lecturers map[int]struct{}
-	clearedclass_lecturers bool
-	done                   bool
-	oldValue               func(context.Context) (*Lecturer, error)
-	predicates             []predicate.Lecturer
+	op             Op
+	typ            string
+	id             *int
+	first_name     *string
+	last_name      *string
+	email          *string
+	deleted_at     *string
+	clearedFields  map[string]struct{}
+	classes        map[int]struct{}
+	removedclasses map[int]struct{}
+	clearedclasses bool
+	done           bool
+	oldValue       func(context.Context) (*Lecturer, error)
+	predicates     []predicate.Lecturer
 }
 
 var _ ent.Mutation = (*LecturerMutation)(nil)
@@ -1198,58 +721,58 @@ func (m *LecturerMutation) ResetDeletedAt() {
 	delete(m.clearedFields, lecturer.FieldDeletedAt)
 }
 
-// AddClassLecturerIDs adds the "class_lecturers" edge to the ClassLecturer entity by ids.
-func (m *LecturerMutation) AddClassLecturerIDs(ids ...int) {
-	if m.class_lecturers == nil {
-		m.class_lecturers = make(map[int]struct{})
+// AddClassIDs adds the "classes" edge to the Class entity by ids.
+func (m *LecturerMutation) AddClassIDs(ids ...int) {
+	if m.classes == nil {
+		m.classes = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.class_lecturers[ids[i]] = struct{}{}
+		m.classes[ids[i]] = struct{}{}
 	}
 }
 
-// ClearClassLecturers clears the "class_lecturers" edge to the ClassLecturer entity.
-func (m *LecturerMutation) ClearClassLecturers() {
-	m.clearedclass_lecturers = true
+// ClearClasses clears the "classes" edge to the Class entity.
+func (m *LecturerMutation) ClearClasses() {
+	m.clearedclasses = true
 }
 
-// ClassLecturersCleared reports if the "class_lecturers" edge to the ClassLecturer entity was cleared.
-func (m *LecturerMutation) ClassLecturersCleared() bool {
-	return m.clearedclass_lecturers
+// ClassesCleared reports if the "classes" edge to the Class entity was cleared.
+func (m *LecturerMutation) ClassesCleared() bool {
+	return m.clearedclasses
 }
 
-// RemoveClassLecturerIDs removes the "class_lecturers" edge to the ClassLecturer entity by IDs.
-func (m *LecturerMutation) RemoveClassLecturerIDs(ids ...int) {
-	if m.removedclass_lecturers == nil {
-		m.removedclass_lecturers = make(map[int]struct{})
+// RemoveClassIDs removes the "classes" edge to the Class entity by IDs.
+func (m *LecturerMutation) RemoveClassIDs(ids ...int) {
+	if m.removedclasses == nil {
+		m.removedclasses = make(map[int]struct{})
 	}
 	for i := range ids {
-		delete(m.class_lecturers, ids[i])
-		m.removedclass_lecturers[ids[i]] = struct{}{}
+		delete(m.classes, ids[i])
+		m.removedclasses[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedClassLecturers returns the removed IDs of the "class_lecturers" edge to the ClassLecturer entity.
-func (m *LecturerMutation) RemovedClassLecturersIDs() (ids []int) {
-	for id := range m.removedclass_lecturers {
+// RemovedClasses returns the removed IDs of the "classes" edge to the Class entity.
+func (m *LecturerMutation) RemovedClassesIDs() (ids []int) {
+	for id := range m.removedclasses {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ClassLecturersIDs returns the "class_lecturers" edge IDs in the mutation.
-func (m *LecturerMutation) ClassLecturersIDs() (ids []int) {
-	for id := range m.class_lecturers {
+// ClassesIDs returns the "classes" edge IDs in the mutation.
+func (m *LecturerMutation) ClassesIDs() (ids []int) {
+	for id := range m.classes {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetClassLecturers resets all changes to the "class_lecturers" edge.
-func (m *LecturerMutation) ResetClassLecturers() {
-	m.class_lecturers = nil
-	m.clearedclass_lecturers = false
-	m.removedclass_lecturers = nil
+// ResetClasses resets all changes to the "classes" edge.
+func (m *LecturerMutation) ResetClasses() {
+	m.classes = nil
+	m.clearedclasses = false
+	m.removedclasses = nil
 }
 
 // Where appends a list predicates to the LecturerMutation builder.
@@ -1446,8 +969,8 @@ func (m *LecturerMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *LecturerMutation) AddedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.class_lecturers != nil {
-		edges = append(edges, lecturer.EdgeClassLecturers)
+	if m.classes != nil {
+		edges = append(edges, lecturer.EdgeClasses)
 	}
 	return edges
 }
@@ -1456,9 +979,9 @@ func (m *LecturerMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *LecturerMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case lecturer.EdgeClassLecturers:
-		ids := make([]ent.Value, 0, len(m.class_lecturers))
-		for id := range m.class_lecturers {
+	case lecturer.EdgeClasses:
+		ids := make([]ent.Value, 0, len(m.classes))
+		for id := range m.classes {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1469,8 +992,8 @@ func (m *LecturerMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *LecturerMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.removedclass_lecturers != nil {
-		edges = append(edges, lecturer.EdgeClassLecturers)
+	if m.removedclasses != nil {
+		edges = append(edges, lecturer.EdgeClasses)
 	}
 	return edges
 }
@@ -1479,9 +1002,9 @@ func (m *LecturerMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *LecturerMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case lecturer.EdgeClassLecturers:
-		ids := make([]ent.Value, 0, len(m.removedclass_lecturers))
-		for id := range m.removedclass_lecturers {
+	case lecturer.EdgeClasses:
+		ids := make([]ent.Value, 0, len(m.removedclasses))
+		for id := range m.removedclasses {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1492,8 +1015,8 @@ func (m *LecturerMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *LecturerMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.clearedclass_lecturers {
-		edges = append(edges, lecturer.EdgeClassLecturers)
+	if m.clearedclasses {
+		edges = append(edges, lecturer.EdgeClasses)
 	}
 	return edges
 }
@@ -1502,8 +1025,8 @@ func (m *LecturerMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *LecturerMutation) EdgeCleared(name string) bool {
 	switch name {
-	case lecturer.EdgeClassLecturers:
-		return m.clearedclass_lecturers
+	case lecturer.EdgeClasses:
+		return m.clearedclasses
 	}
 	return false
 }
@@ -1520,8 +1043,8 @@ func (m *LecturerMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *LecturerMutation) ResetEdge(name string) error {
 	switch name {
-	case lecturer.EdgeClassLecturers:
-		m.ResetClassLecturers()
+	case lecturer.EdgeClasses:
+		m.ResetClasses()
 		return nil
 	}
 	return fmt.Errorf("unknown Lecturer edge %s", name)
