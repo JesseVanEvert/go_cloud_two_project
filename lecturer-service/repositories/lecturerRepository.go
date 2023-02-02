@@ -8,27 +8,48 @@ import (
 )
 
 type LecturerRepository interface {
-	GetAllLecturers(client *ent.Client) ([]*ent.Lecturer, error)
-	GetLecturerByID(client *ent.Client, id int) (*ent.Lecturer, error)
-	CreateLecturer(client *ent.Client, lecturer *ent.Lecturer) (*ent.Lecturer, error)
-	AddLecturerToClass(client *ent.Client, lecturerID, classID int) (string, error)
-}
-func GetAllLecturers(ctx context.Context, client *ent.Client) ([]*ent.Lecturer, error) {
-	return client.Lecturer.Query().All(ctx)
+	GetAllLecturers() ([]*ent.Lecturer, error)
+	GetLecturerByID(id int) (*ent.Lecturer, error)
+	CreateLecturer(lecturer *ent.Lecturer) (*ent.Lecturer, error)
+	AddLecturerToClass(lecturerID, classID int) (string, error)
+	GetAllClasses() ([]*ent.Class, error)
 }
 
-func GetLecturerByID(ctx context.Context, client *ent.Client, id int) (*ent.Lecturer, error) {
-	return client.Lecturer.Query().Where(lecturer.ID(id)).Only(ctx)
+type LecturerRepositoryDefault struct {
+	ctx context.Context
+	client *ent.Client
 }
 
-func createLecturer(ctx context.Context, client *ent.Client, lecturer *ent.Lecturer) (*ent.Lecturer, error) {
-	return client.Lecturer.Create().SetEmail(lecturer.Email).SetFirstName(lecturer.FirstName).SetLastName(lecturer.LastName).Save(ctx)
+func (dl LecturerRepositoryDefault) GetAllLecturers() ([]*ent.Lecturer, error) {
+	lecturers, err := dl.client.Lecturer.Query().All(dl.ctx)
+
+	if err != nil {
+		return nil, fmt.Errorf("getting all lecturers: %w", err)
+	}
+
+	return lecturers, nil
 }
 
-func addLecturerToClass(ctx context.Context, client *ent.Client, lecturerID, classID int) (string, error) {
-	_, err := client.Class.UpdateOneID(classID).AddClassLecturerIDs(lecturerID).Save(ctx)
+func (dl LecturerRepositoryDefault) GetLecturerByID(id int) (*ent.Lecturer, error) {
+	return dl.client.Lecturer.Query().Where(lecturer.ID(id)).Only(dl.ctx)
+}
+
+func (dl LecturerRepositoryDefault) CreateLecturer(lecturer *ent.Lecturer) (*ent.Lecturer, error) {
+	return dl.client.Lecturer.Create().SetEmail(lecturer.Email).SetFirstName(lecturer.FirstName).SetLastName(lecturer.LastName).Save(dl.ctx)
+}
+
+func (dl LecturerRepositoryDefault) GetAllClasses() ([]*ent.Class, error) {
+	return dl.client.Class.Query().All(dl.ctx)
+}
+
+func (dl LecturerRepositoryDefault) AddLecturerToClass(lecturerID, classID int) (string, error) {
+	_, err := dl.client.Class.UpdateOneID(classID).AddClassLecturerIDs(lecturerID).Save(dl.ctx)
 	if err != nil {
 		return "Adding lecturer failed", fmt.Errorf("adding lecturer to class: %w", err)
 	}
 	return "Adding lecturer succeeded", nil
+}
+
+func NewLecturerRepository(ctx context.Context, client *ent.Client) LecturerRepositoryDefault {
+	return LecturerRepositoryDefault{ctx, client}
 }

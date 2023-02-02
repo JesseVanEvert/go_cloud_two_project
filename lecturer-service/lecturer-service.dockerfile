@@ -7,7 +7,7 @@ COPY . /app
 
 WORKDIR /app
 
-RUN CGO_ENABLED=0 go build -o lecturerService ./cmd/api
+RUN CGO_ENABLED=0 go build -o lecturerService .
 
 RUN chmod +x /app/lecturerService
 
