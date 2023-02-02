@@ -7,6 +7,7 @@ import (
 	"lecturer/ent"
 	"lecturer/event"
 	"lecturer/helpers"
+	models "lecturer/models"
 	"lecturer/repositories"
 	Services "lecturer/services"
 	"log"
@@ -32,59 +33,16 @@ type Config struct {
 	Service Services.LecturerService
 }
 
-type RequestPayload struct {
-	Action  string         `json:"action"`
-	Auth    AuthPayload    `json:"auth,omitempty"`
-	Log     LogPayload     `json:"log,omitempty"`
-	Message MessagePayload `json:"message,omitempty"`
-}
-
-type MessagePayload struct {
-	From    string `json:"from"`
-	To      string `json:"to"`
-	Message string `json:"message"`
-}
-
-type AuthPayload struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type LecturerPayload struct {
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Email     string `json:"email"`
-}
-
-type LogPayload struct {
-	Name string `json:"name"`
-	Data string `json:"data"`
-}
-
-type jsonResponse struct {
-	Error bool `json:"error"`
-	Message string `json:"message"`
-	Data any `json:"data,omitempty"`
-}
-
 
 func (c *Config) registerRoutes() {
 
 
 	mux := chi.NewRouter()
 
-	// specify who is allowed to connect
-	/*mux.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{"https://*", "http://*"},
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders: []string{"Link"},
-		AllowCredentials: true,
-		MaxAge: 300,
-	}))*/
 
-	mux.HandleFunc("/createLecturer", c.createLecturer)
-	mux.HandleFunc("/getAllLecturers", c.getAllLecturers)
+	mux.HandleFunc("/createLecturer", c.CreateLecturer)
+	mux.HandleFunc("/getAllLecturers", c.GetAllLecturers)
+	mux.HandleFunc("/addLecturerToClass", c.AddLecturerToClass)
 	mux.HandleFunc("/handle", c.handleSubmission)
 
 	http.ListenAndServe(":8080", mux)
@@ -168,7 +126,7 @@ func connect() (*amqp.Connection, error) {
 // HandleSubmission is the main point of entry into the broker. It accepts a JSON
 // payload and performs an action based on the value of "action" in that JSON.
 func (c *Config ) handleSubmission(w http.ResponseWriter, r *http.Request) {
-	var requestPayload RequestPayload
+	var requestPayload models.RequestPayload
 	
 	err := c.Helpers.ReadJSON(w, r, &requestPayload)
 	
@@ -186,7 +144,7 @@ func (c *Config ) handleSubmission(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c *Config )  putMessageOnQueue(w http.ResponseWriter, msg MessagePayload) {
+func (c *Config )  putMessageOnQueue(w http.ResponseWriter, msg models.MessagePayload) {
 
 	err := c.pushToQueue(msg.From, msg.To, msg.Message)
 	if err != nil {
@@ -194,7 +152,7 @@ func (c *Config )  putMessageOnQueue(w http.ResponseWriter, msg MessagePayload) 
 		return
 	}
 
-	var payload jsonResponse
+	var payload models.JsonResponse
 	payload.Error = false
 	payload.Message = "Send message via RabbitMQ"
 
@@ -209,7 +167,7 @@ func (c *Config)  pushToQueue(from, to, message string) error {
 		return err
 	}
 
-	payload := MessagePayload{
+	payload := models.MessagePayload{
 		From:    from,
 		To:      to,
 		Message: message,
@@ -223,32 +181,23 @@ func (c *Config)  pushToQueue(from, to, message string) error {
 	return nil
 }
 
-func (c *Config ) createLecturer(w http.ResponseWriter, lect *http.Request) {
-	var lecturerPayload LecturerPayload
-	error2 := c.Helpers.ReadJSON(w, lect, &lecturerPayload)
+func (c *Config ) CreateLecturer(w http.ResponseWriter, lect *http.Request) {
+	var lecturerPayload models.LecturerPayload
+	error := c.Helpers.ReadJSON(w, lect, &lecturerPayload)
 
-	if error2 != nil {
-		c.Helpers.ErrorJSON(w, error2)
+	if error!= nil {
+		c.Helpers.ErrorJSON(w, error)
 		return 
 	}
 
-	var lect2 *ent.Lecturer = &ent.Lecturer{
-		FirstName: lecturerPayload.FirstName,
-		LastName: lecturerPayload.LastName,
-		Email: lecturerPayload.Email,
-	}
+	lect3, error := c.Service.CreateLecturer(lecturerPayload)
 
-	lect3, error3 := c.Service.CreateLecturer(lect2)
-
-	var payload jsonResponse
-
-	if error3 != nil {
-		payload.Error = true
-		payload.Message = "Error creating lecturer"
-		payload.Data = error3
-		c.Helpers.WriteJSON(w, http.StatusBadRequest, payload)
+	if(error != nil){
+		c.Helpers.ErrorJSON(w, error)
 		return
 	}
+
+	var payload models.JsonResponse
 
 	payload.Error = false
 	payload.Message = "Created lecturer"
@@ -257,18 +206,31 @@ func (c *Config ) createLecturer(w http.ResponseWriter, lect *http.Request) {
 	c.Helpers.WriteJSON(w, http.StatusAccepted, payload)
 }
 
-func (c *Config )  addLecturerToClass(ctx context.Context, client *ent.Client, lecturerID, classID int) error {
-	_, err := client.Class.
-		UpdateOneID(classID).
-		AddClassLecturerIDs(lecturerID).
-		Save(ctx)
-	if err != nil {
-		return fmt.Errorf("adding lecturer to class: %w", err)
+func (c *Config ) AddLecturerToClass(w http.ResponseWriter, lect *http.Request) {
+	var classLecturerPayload models.ClassLecturerPayload
+	error := c.Helpers.ReadJSON(w, lect, &classLecturerPayload)
+
+	if(error != nil){
+		c.Helpers.ErrorJSON(w, error)
+		return
 	}
-	return nil
+
+	message, error := c.Service.AddLecturerToClass(classLecturerPayload.ClassId, classLecturerPayload.LecturerId)
+
+	if(error != nil){
+		c.Helpers.ErrorJSON(w, error)
+		return
+	}
+
+	var payload models.JsonResponse
+	payload.Error = false
+	payload.Message = message
+	payload.Data = nil
+
+	c.Helpers.WriteJSON(w, http.StatusAccepted, payload)
 }
 
-func (c *Config ) getAllLecturers(w http.ResponseWriter, lect *http.Request)  {
+func (c *Config ) GetAllLecturers(w http.ResponseWriter, lect *http.Request)  {
 	lecturers, err := c.Service.GetAllLecturers()
 
 	if err != nil {
@@ -276,7 +238,7 @@ func (c *Config ) getAllLecturers(w http.ResponseWriter, lect *http.Request)  {
 		return
 	}
 
-	var payload jsonResponse
+	var payload models.JsonResponse
 	payload.Error = false
 	payload.Message = "Retrieved lecturers"
 	payload.Data = lecturers
@@ -284,7 +246,7 @@ func (c *Config ) getAllLecturers(w http.ResponseWriter, lect *http.Request)  {
 	c.Helpers.WriteJSON(w, http.StatusOK, payload)
 }
 
-func (c *Config )  getAllClasses(w http.ResponseWriter, lect *http.Request) ([]*ent.Class, error) {
+func (c *Config )  GetAllClasses(w http.ResponseWriter, lect *http.Request) ([]*ent.Class, error) {
 	classes, err := c.Service.GetAllClasses()
 
 	if err != nil {

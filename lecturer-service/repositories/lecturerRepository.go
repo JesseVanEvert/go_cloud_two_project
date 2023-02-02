@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"lecturer/ent"
 	"lecturer/ent/lecturer"
+	"lecturer/models"
 )
 
 type LecturerRepository interface {
 	GetAllLecturers() ([]*ent.Lecturer, error)
 	GetLecturerByID(id int) (*ent.Lecturer, error)
-	CreateLecturer(lecturer *ent.Lecturer) (*ent.Lecturer, error)
+	CreateLecturer(lecturer models.LecturerPayload) (*ent.Lecturer, error)
 	AddLecturerToClass(lecturerID, classID int) (string, error)
 	GetAllClasses() ([]*ent.Class, error)
 }
@@ -34,7 +35,7 @@ func (dl LecturerRepositoryDefault) GetLecturerByID(id int) (*ent.Lecturer, erro
 	return dl.client.Lecturer.Query().Where(lecturer.ID(id)).Only(dl.ctx)
 }
 
-func (dl LecturerRepositoryDefault) CreateLecturer(lecturer *ent.Lecturer) (*ent.Lecturer, error) {
+func (dl LecturerRepositoryDefault) CreateLecturer(lecturer models.LecturerPayload) (*ent.Lecturer, error) {
 	return dl.client.Lecturer.Create().SetEmail(lecturer.Email).SetFirstName(lecturer.FirstName).SetLastName(lecturer.LastName).Save(dl.ctx)
 }
 
@@ -43,7 +44,7 @@ func (dl LecturerRepositoryDefault) GetAllClasses() ([]*ent.Class, error) {
 }
 
 func (dl LecturerRepositoryDefault) AddLecturerToClass(lecturerID, classID int) (string, error) {
-	_, err := dl.client.Class.UpdateOneID(classID).AddClassLecturerIDs(lecturerID).Save(dl.ctx)
+	_, err := dl.client.ClassLecturer.Create().SetClassID(classID).SetLecturerID(lecturerID).Save(dl.ctx)
 	if err != nil {
 		return "Adding lecturer failed", fmt.Errorf("adding lecturer to class: %w", err)
 	}

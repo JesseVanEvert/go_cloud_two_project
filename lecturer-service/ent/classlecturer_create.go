@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"lecturer/ent/class"
 	"lecturer/ent/classlecturer"
@@ -25,6 +24,14 @@ type ClassLecturerCreate struct {
 // SetDeletedAt sets the "deleted_at" field.
 func (clc *ClassLecturerCreate) SetDeletedAt(t time.Time) *ClassLecturerCreate {
 	clc.mutation.SetDeletedAt(t)
+	return clc
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (clc *ClassLecturerCreate) SetNillableDeletedAt(t *time.Time) *ClassLecturerCreate {
+	if t != nil {
+		clc.SetDeletedAt(*t)
+	}
 	return clc
 }
 
@@ -100,9 +107,6 @@ func (clc *ClassLecturerCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (clc *ClassLecturerCreate) check() error {
-	if _, ok := clc.mutation.DeletedAt(); !ok {
-		return &ValidationError{Name: "deleted_at", err: errors.New(`ent: missing required field "ClassLecturer.deleted_at"`)}
-	}
 	return nil
 }
 

@@ -14,7 +14,7 @@ type ClassLecturer struct {
 // Fields of the ClassLecturer.
 func (ClassLecturer) Fields() []ent.Field {
 	return []ent.Field{
-		field.Time("deleted_at"),
+		field.Time("deleted_at").Optional(),
 	}
 }
 

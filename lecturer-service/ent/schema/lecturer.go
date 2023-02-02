@@ -17,7 +17,7 @@ func (Lecturer) Fields() []ent.Field {
 		field.String("first_name"),
 		field.String("last_name"),
 		field.String("email"),
-		field.String("deleted_at"),
+		field.String("deleted_at").Optional(),
 	}
 }
 

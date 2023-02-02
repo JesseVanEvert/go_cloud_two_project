@@ -36,6 +36,20 @@ func (clu *ClassLecturerUpdate) SetDeletedAt(t time.Time) *ClassLecturerUpdate {
 	return clu
 }
 
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (clu *ClassLecturerUpdate) SetNillableDeletedAt(t *time.Time) *ClassLecturerUpdate {
+	if t != nil {
+		clu.SetDeletedAt(*t)
+	}
+	return clu
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (clu *ClassLecturerUpdate) ClearDeletedAt() *ClassLecturerUpdate {
+	clu.mutation.ClearDeletedAt()
+	return clu
+}
+
 // SetClassID sets the "class" edge to the Class entity by ID.
 func (clu *ClassLecturerUpdate) SetClassID(id int) *ClassLecturerUpdate {
 	clu.mutation.SetClassID(id)
@@ -139,6 +153,9 @@ func (clu *ClassLecturerUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	if value, ok := clu.mutation.DeletedAt(); ok {
 		_spec.SetField(classlecturer.FieldDeletedAt, field.TypeTime, value)
 	}
+	if clu.mutation.DeletedAtCleared() {
+		_spec.ClearField(classlecturer.FieldDeletedAt, field.TypeTime)
+	}
 	if clu.mutation.ClassCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -232,6 +249,20 @@ type ClassLecturerUpdateOne struct {
 // SetDeletedAt sets the "deleted_at" field.
 func (cluo *ClassLecturerUpdateOne) SetDeletedAt(t time.Time) *ClassLecturerUpdateOne {
 	cluo.mutation.SetDeletedAt(t)
+	return cluo
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (cluo *ClassLecturerUpdateOne) SetNillableDeletedAt(t *time.Time) *ClassLecturerUpdateOne {
+	if t != nil {
+		cluo.SetDeletedAt(*t)
+	}
+	return cluo
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (cluo *ClassLecturerUpdateOne) ClearDeletedAt() *ClassLecturerUpdateOne {
+	cluo.mutation.ClearDeletedAt()
 	return cluo
 }
 
@@ -361,6 +392,9 @@ func (cluo *ClassLecturerUpdateOne) sqlSave(ctx context.Context) (_node *ClassLe
 	}
 	if value, ok := cluo.mutation.DeletedAt(); ok {
 		_spec.SetField(classlecturer.FieldDeletedAt, field.TypeTime, value)
+	}
+	if cluo.mutation.DeletedAtCleared() {
+		_spec.ClearField(classlecturer.FieldDeletedAt, field.TypeTime)
 	}
 	if cluo.mutation.ClassCleared() {
 		edge := &sqlgraph.EdgeSpec{

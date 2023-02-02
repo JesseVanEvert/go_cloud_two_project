@@ -324,6 +324,16 @@ func DeletedAtHasSuffix(v string) predicate.Lecturer {
 	return predicate.Lecturer(sql.FieldHasSuffix(FieldDeletedAt, v))
 }
 
+// DeletedAtIsNil applies the IsNil predicate on the "deleted_at" field.
+func DeletedAtIsNil() predicate.Lecturer {
+	return predicate.Lecturer(sql.FieldIsNull(FieldDeletedAt))
+}
+
+// DeletedAtNotNil applies the NotNil predicate on the "deleted_at" field.
+func DeletedAtNotNil() predicate.Lecturer {
+	return predicate.Lecturer(sql.FieldNotNull(FieldDeletedAt))
+}
+
 // DeletedAtEqualFold applies the EqualFold predicate on the "deleted_at" field.
 func DeletedAtEqualFold(v string) predicate.Lecturer {
 	return predicate.Lecturer(sql.FieldEqualFold(FieldDeletedAt, v))

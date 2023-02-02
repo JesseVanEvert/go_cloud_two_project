@@ -596,9 +596,22 @@ func (m *ClassLecturerMutation) OldDeletedAt(ctx context.Context) (v time.Time, 
 	return oldValue.DeletedAt, nil
 }
 
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *ClassLecturerMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[classlecturer.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *ClassLecturerMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[classlecturer.FieldDeletedAt]
+	return ok
+}
+
 // ResetDeletedAt resets all changes to the "deleted_at" field.
 func (m *ClassLecturerMutation) ResetDeletedAt() {
 	m.deleted_at = nil
+	delete(m.clearedFields, classlecturer.FieldDeletedAt)
 }
 
 // SetClassID sets the "class" edge to the Class entity by id.
@@ -783,7 +796,11 @@ func (m *ClassLecturerMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *ClassLecturerMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(classlecturer.FieldDeletedAt) {
+		fields = append(fields, classlecturer.FieldDeletedAt)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -796,6 +813,11 @@ func (m *ClassLecturerMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *ClassLecturerMutation) ClearField(name string) error {
+	switch name {
+	case classlecturer.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
 	return fmt.Errorf("unknown ClassLecturer nullable field %s", name)
 }
 
@@ -1158,9 +1180,22 @@ func (m *LecturerMutation) OldDeletedAt(ctx context.Context) (v string, err erro
 	return oldValue.DeletedAt, nil
 }
 
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *LecturerMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[lecturer.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *LecturerMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[lecturer.FieldDeletedAt]
+	return ok
+}
+
 // ResetDeletedAt resets all changes to the "deleted_at" field.
 func (m *LecturerMutation) ResetDeletedAt() {
 	m.deleted_at = nil
+	delete(m.clearedFields, lecturer.FieldDeletedAt)
 }
 
 // AddClassLecturerIDs adds the "class_lecturers" edge to the ClassLecturer entity by ids.
@@ -1363,7 +1398,11 @@ func (m *LecturerMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *LecturerMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(lecturer.FieldDeletedAt) {
+		fields = append(fields, lecturer.FieldDeletedAt)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1376,6 +1415,11 @@ func (m *LecturerMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *LecturerMutation) ClearField(name string) error {
+	switch name {
+	case lecturer.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
 	return fmt.Errorf("unknown Lecturer nullable field %s", name)
 }
 

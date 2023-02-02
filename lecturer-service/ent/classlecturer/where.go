@@ -100,6 +100,16 @@ func DeletedAtLTE(v time.Time) predicate.ClassLecturer {
 	return predicate.ClassLecturer(sql.FieldLTE(FieldDeletedAt, v))
 }
 
+// DeletedAtIsNil applies the IsNil predicate on the "deleted_at" field.
+func DeletedAtIsNil() predicate.ClassLecturer {
+	return predicate.ClassLecturer(sql.FieldIsNull(FieldDeletedAt))
+}
+
+// DeletedAtNotNil applies the NotNil predicate on the "deleted_at" field.
+func DeletedAtNotNil() predicate.ClassLecturer {
+	return predicate.ClassLecturer(sql.FieldNotNull(FieldDeletedAt))
+}
+
 // HasClass applies the HasEdge predicate on the "class" edge.
 func HasClass() predicate.ClassLecturer {
 	return predicate.ClassLecturer(func(s *sql.Selector) {

@@ -52,6 +52,20 @@ func (lu *LecturerUpdate) SetDeletedAt(s string) *LecturerUpdate {
 	return lu
 }
 
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (lu *LecturerUpdate) SetNillableDeletedAt(s *string) *LecturerUpdate {
+	if s != nil {
+		lu.SetDeletedAt(*s)
+	}
+	return lu
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (lu *LecturerUpdate) ClearDeletedAt() *LecturerUpdate {
+	lu.mutation.ClearDeletedAt()
+	return lu
+}
+
 // AddClassLecturerIDs adds the "class_lecturers" edge to the ClassLecturer entity by IDs.
 func (lu *LecturerUpdate) AddClassLecturerIDs(ids ...int) *LecturerUpdate {
 	lu.mutation.AddClassLecturerIDs(ids...)
@@ -150,6 +164,9 @@ func (lu *LecturerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := lu.mutation.DeletedAt(); ok {
 		_spec.SetField(lecturer.FieldDeletedAt, field.TypeString, value)
 	}
+	if lu.mutation.DeletedAtCleared() {
+		_spec.ClearField(lecturer.FieldDeletedAt, field.TypeString)
+	}
 	if lu.mutation.ClassLecturersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -245,6 +262,20 @@ func (luo *LecturerUpdateOne) SetEmail(s string) *LecturerUpdateOne {
 // SetDeletedAt sets the "deleted_at" field.
 func (luo *LecturerUpdateOne) SetDeletedAt(s string) *LecturerUpdateOne {
 	luo.mutation.SetDeletedAt(s)
+	return luo
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (luo *LecturerUpdateOne) SetNillableDeletedAt(s *string) *LecturerUpdateOne {
+	if s != nil {
+		luo.SetDeletedAt(*s)
+	}
+	return luo
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (luo *LecturerUpdateOne) ClearDeletedAt() *LecturerUpdateOne {
+	luo.mutation.ClearDeletedAt()
 	return luo
 }
 
@@ -369,6 +400,9 @@ func (luo *LecturerUpdateOne) sqlSave(ctx context.Context) (_node *Lecturer, err
 	}
 	if value, ok := luo.mutation.DeletedAt(); ok {
 		_spec.SetField(lecturer.FieldDeletedAt, field.TypeString, value)
+	}
+	if luo.mutation.DeletedAtCleared() {
+		_spec.ClearField(lecturer.FieldDeletedAt, field.TypeString)
 	}
 	if luo.mutation.ClassLecturersCleared() {
 		edge := &sqlgraph.EdgeSpec{

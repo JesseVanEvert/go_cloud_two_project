@@ -22,7 +22,7 @@ var (
 	// ClassLecturersColumns holds the columns for the "class_lecturers" table.
 	ClassLecturersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "deleted_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "class_class_lecturers", Type: field.TypeInt, Nullable: true},
 		{Name: "lecturer_class_lecturers", Type: field.TypeInt, Nullable: true},
 	}
@@ -52,7 +52,7 @@ var (
 		{Name: "first_name", Type: field.TypeString},
 		{Name: "last_name", Type: field.TypeString},
 		{Name: "email", Type: field.TypeString},
-		{Name: "deleted_at", Type: field.TypeString},
+		{Name: "deleted_at", Type: field.TypeString, Nullable: true},
 	}
 	// LecturersTable holds the schema information for the "lecturers" table.
 	LecturersTable = &schema.Table{

@@ -44,6 +44,14 @@ func (lc *LecturerCreate) SetDeletedAt(s string) *LecturerCreate {
 	return lc
 }
 
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (lc *LecturerCreate) SetNillableDeletedAt(s *string) *LecturerCreate {
+	if s != nil {
+		lc.SetDeletedAt(*s)
+	}
+	return lc
+}
+
 // AddClassLecturerIDs adds the "class_lecturers" edge to the ClassLecturer entity by IDs.
 func (lc *LecturerCreate) AddClassLecturerIDs(ids ...int) *LecturerCreate {
 	lc.mutation.AddClassLecturerIDs(ids...)
@@ -101,9 +109,6 @@ func (lc *LecturerCreate) check() error {
 	}
 	if _, ok := lc.mutation.Email(); !ok {
 		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "Lecturer.email"`)}
-	}
-	if _, ok := lc.mutation.DeletedAt(); !ok {
-		return &ValidationError{Name: "deleted_at", err: errors.New(`ent: missing required field "Lecturer.deleted_at"`)}
 	}
 	return nil
 }
