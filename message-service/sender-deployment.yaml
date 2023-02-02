@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\Inholland\go\bin\kompose.exe convert -f docker-compose.yml
+    kompose.version: 1.28.0 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: sender
+  name: sender
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: sender
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Users\Inholland\go\bin\kompose.exe convert -f docker-compose.yml
+        kompose.version: 1.28.0 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/message-service-default: "true"
+        io.kompose.service: sender
+    spec:
+      containers:
+        - env:
+            - name: AMQP_SERVER_URL
+              value: amqp://guest:guest@message-broker:5672/
+          image: sender
+          name: sender
+          ports:
+            - containerPort: 3000
+          resources: {}
+      restartPolicy: Always
+status: {}
