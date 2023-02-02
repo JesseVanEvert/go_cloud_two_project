@@ -61,22 +61,17 @@ func main() {
 	app.Use(
 		logger.New(), // add simple logger
 	)
-	messagePaload := MessagePayload{
-		Message: "Hello, World!",
-		From:    "mridulhasan157@gmail.com",
-		To: []Recipient{
-			{
-				Email: "anotherrecipient@gmail.com",
-			},
-			{
-				Email: "recipient1@gmail.com",
-			},
-		},
-	}
-	body, err := json.Marshal(messagePaload)
+
 	// Add route for send message to Service 1.
 	app.Get("/send", func(c *fiber.Ctx) error {
-		// Create a message to publish.
+		var messagePayload MessagePayload
+		if err := c.BodyParser(&messagePayload); err != nil {
+			return err
+		}
+		body, err := json.Marshal(messagePayload)
+		if err != nil {
+			return err
+		}
 		message := amqp.Publishing{
 			ContentType: "application/json",
 			Body:        body,
