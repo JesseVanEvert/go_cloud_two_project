@@ -1,0 +1,186 @@
+openapi: 3.0.0
+info:
+  title: "RP Flask REST API"
+  description: "An API about people and notes"
+  version: "1.0.0"
+
+servers:
+  - url: "/api"
+
+components:
+  schemas:
+    Student:
+      type: "object"
+      required:
+        - lname
+      properties:
+        fname:
+          type: "string"
+        lname:
+          type: "string"
+        email:
+          type: "string"
+        classroom_id:
+          type: "integer"
+    Classroom:
+      type: "object"
+      required:
+        - classname
+      properties:
+        classname:
+          type: "string"    
+  parameters:
+    student_id:
+      name: "student_id"
+      description: "id of the student to get"
+      in: path
+      required: True
+      schema:
+        type: "integer"
+    classname:
+      name: "classname"
+      description: "name of the class to get"
+      in: path
+      required: True
+      schema:
+        type: "string"
+    student_id:
+      name: "student_id"
+      description: "ID of the student"
+      in: path
+      required: true
+      schema:
+        type: "integer"
+  
+ 
+
+paths:
+  /student:
+    get:
+      operationId: "studentservice.read_all"
+      tags:
+        - "Student"
+      summary: "Read the list of students"
+      responses:
+        "200":
+          description: "Successfully read students list"
+    post:
+      operationId: "studentservice.create"
+      tags:
+        - Student
+      summary: "Create a student"
+      requestBody:
+          description: "Student to create"
+          required: True
+          content:
+            application/json:
+              schema:
+                x-body-name: "student"
+                $ref: "#/components/schemas/Student"
+      responses:
+        "201":
+          description: "Successfully created student"
+  /student/{student_id}:
+    get:
+      operationId: "studentservice.read_one"
+      tags:
+        - Student
+      summary: "Read one student"
+      parameters:
+        - $ref: "#/components/parameters/student_id"
+      responses:
+        "200":
+          description: "Successfully read person"   
+  /student/delete/{student_id}:    
+    put:
+      tags:
+        - Student
+      operationId: "studentservice.update"
+      summary: "Perform soft delete"
+      parameters:
+        - $ref: "#/components/parameters/student_id"
+      responses:
+        "200":
+          description: "Successfully updated person"
+  # /student/restore/{lname}:
+  #   put:
+  #     tags:
+  #       - Student
+  #     operationId: "studentservice.undelete"
+  #     summary: "Undelete a person"
+  #     parameters:
+  #       - $ref: "#/components/parameters/lname"
+  #     responses:
+  #       "200":
+  #         description: "Successfully updated person"
+      # requestBody:
+      #   content:
+      #     application/json:
+      #       schema:
+      #         x-body-name: "person"
+      #         $ref: "#/components/schemas/Student"
+ 
+
+
+  /classrooms:
+    get:
+      operationId: "classroomservice.read_all"
+      tags:
+        - classroom
+      summary: "Read the list of classrooms"
+      responses:
+        "200":
+          description: "Successfully read classroom list"
+    post:
+      operationId: "classroomservice.create"
+      tags:
+        - classroom
+      summary: "Create a classroom"
+      requestBody:
+          description: "Person to create"
+          required: True
+          content:
+            application/json:
+              schema:
+                x-body-name: "classroom"
+                $ref: "#/components/schemas/Classroom"
+      responses:
+        "201":
+          description: "Successfully created classroom"
+  /classroom/{classname}:
+    get:
+      operationId: "classroomservice.read_one"
+      tags:
+        - classroom
+      summary: "Read one classroom"
+      parameters:
+        - $ref: "#/components/parameters/classname"
+      responses:
+        "200":
+          description: "Successfully read classroom"
+    put:
+      tags:
+        - classroom
+      operationId: "classroomservice.update"
+      summary: "Update a classroom"
+      parameters:
+        - $ref: "#/components/parameters/classname"
+      responses:
+        "200":
+          description: "Successfully updated classroom"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: "classroom"
+              $ref: "#/components/schemas/Classroom"
+    delete:
+      tags:
+        - classroom
+      operationId: "classroomservice.delete"
+      summary: "Delete a person"
+      parameters:
+        - $ref: "#/components/parameters/classname"
+      responses:
+        "204":
+          description: "Successfully deleted person"
