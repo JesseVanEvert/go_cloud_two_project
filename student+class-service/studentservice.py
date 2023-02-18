@@ -1,8 +1,13 @@
-from models import Student,student_schema,people_schema
+import json
+
+from models import Student,student_schema,people_schema,Classroom
 from flask import abort, make_response
 
 from config import db
 from datetime import datetime,time
+from rabbitmq_connection import RabbitMQConnection
+
+
 
 def read_all():
     student = Student.query.all()
@@ -19,6 +24,8 @@ def create(student):
         new_student.deleted_at = '--'
         db.session.add(new_student)
         db.session.commit()
+        classroom = Classroom.query.filter(Classroom.id == new_student.classroom_id).one_or_none()
+        send_classroom(classroom)
         return student_schema.dump(new_student), 201
     else:
         abort(406, f"Person with last name {lname} already exists")
@@ -44,6 +51,23 @@ def update(student_id):
         return student_schema.dump(existing_student), 201
     else:
         abort(404, f"Person with last name {student_id} not found")
+def send_classroom(class_data):
+    connection = RabbitMQConnection('localhost')
+
+    # Publish a message to the 'student_creation' queue
+    connection.publish_message('student_creation', class_data)
+
+    # Consume messages from the 'student_creation' queue
+    def callback(ch, method, properties, body):
+        print("Received message:", body)
+
+    connection.consume_messages('student_creation', callback)
+
+    # Close the connection
+    connection.close()
+
+
+
 # def undelete(lname):
 #     existing_student = Student.query.filter(Student.lname == lname).one_or_none()
 

@@ -13,7 +13,7 @@ class Student(db.Model):
     fname = db.Column(db.String(32))
     email = db.Column(db.String(32))
     deleted_at = db.Column(db.String(250),nullable = True)
-    classroom_id = db.Column(db.Integer, db.ForeignKey("classroom.id"))
+    classroom_id = db.Column(db.Integer, db.ForeignKey("classroom.id"), nullable = False)
 
 class StudentSchema(ma.SQLAlchemyAutoSchema):
     class Meta:

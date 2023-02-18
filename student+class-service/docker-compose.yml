@@ -6,3 +6,4 @@ services:
       dockerfile: student-app.Dockerfile
     ports:
       - "8000:8000"
+      - "5672:5672"
