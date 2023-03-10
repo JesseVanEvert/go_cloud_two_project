@@ -6,8 +6,8 @@ import (
 
 func declareExchange(ch *amqp.Channel) error {
 	return ch.ExchangeDeclare(
-		"messages", // name
-		"topic",    // type
+		"MessageExchange", // name
+		"direct",    // type
 		true,       // durable?
 		false,      // auto-deleted?
 		false,      // internal?
@@ -16,9 +16,9 @@ func declareExchange(ch *amqp.Channel) error {
 	)
 }
 
-func declareRandomQueue(ch *amqp.Channel) (amqp.Queue, error) {
+func declareQueue(ch *amqp.Channel) (amqp.Queue, error) {
 	return ch.QueueDeclare(
-		"",    // name?
+		"Messages",    // name?
 		false, // durable?
 		false, // delete when unused?
 		true,  // exclusive?

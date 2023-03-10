@@ -31,6 +31,7 @@ type Config struct {
 	Rabbit *amqp.Connection
 	Helpers helpers.Helpers
 	Service Services.LecturerService
+	Channel *amqp.Channel
 }
 
 
@@ -50,7 +51,7 @@ func main() {
 
 
 	// connect to database
-	client, err := ent.Open("mysql", "root:@tcp(localhost:3306)/lecturerTest?parseTime=True")
+	client, err := ent.Open("mysql", "root:@tcp(localhost:3306)/LecturerTest?parseTime=True")
 
 	if err != nil {
         log.Fatalf("failed opening connection to mysql: %v", err)
@@ -74,7 +75,6 @@ func main() {
 		log.Println(err)
 		os.Exit(1)
 	}
-
 	defer rabbitConn.Close()
 
 	log.Printf("Starting broker service on port %s\n", webPort)
@@ -158,9 +158,7 @@ func (c *Config )  putMessageOnQueue(w http.ResponseWriter, msg models.MessagePa
 	c.Helpers.WriteJSON(w, http.StatusAccepted, payload)
 }
 
-// Change to message instead of log
-// pushToQueue pushes a message into RabbitMQ
-func (c *Config)  pushToQueue(from, to, message string) error {
+func (c *Config)  pushToQueue(from string, to []string, message string) error {
 	emitter, err := event.NewEventEmitter(c.Rabbit)
 	if err != nil {
 		return err
@@ -173,7 +171,8 @@ func (c *Config)  pushToQueue(from, to, message string) error {
 	}
 
 	j, _ := json.MarshalIndent(&payload, "", "\t")
-	err = emitter.Push(string(j), "log.INFO")
+	err = emitter.Push(string(j), "Messages")
+	
 	if err != nil {
 		return err
 	}

@@ -8,34 +8,41 @@ import (
 
 type Emitter struct {
 	connection *amqp.Connection
+	channel	*amqp.Channel
 }
 
 func (e *Emitter) setup() error {
 	channel, err := e.connection.Channel()
+
 	if err != nil {
 		return err
 	}
 
-	defer channel.Close()
+	channel.QueueDeclare(
+		"Messages",    // name?
+		true, // durable?
+		false, // delete when unused?
+		false,  // exclusive?
+		false, // no-wait?
+		nil,   // arguments?
+	)
+
+	e.channel = channel;
+
+	//defer channel.Close()
 	return declareExchange(channel)
 }
 
 func (e *Emitter) Push(event string, severity string) error {
-	channel, err := e.connection.Channel()
-	if err != nil {
-		return err
-	}
-	defer channel.Close()
-
 	log.Println("Pushing to channel")
 
-	err = channel.Publish(
-		"messages",
+	err := e.channel.Publish(
+		"",
 		severity,
 		false,
 		false,
 		amqp.Publishing{
-			ContentType: "text/plain",
+			ContentType: "application/json",
 			Body:        []byte(event),
 		},
 	)
