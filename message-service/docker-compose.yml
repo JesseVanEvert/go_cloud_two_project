@@ -1,0 +1,86 @@
+version: '3.7'
+
+services:
+  db:
+    container_name: "message_db"
+    platform: linux/x86_64
+    build:
+      context: .
+      dockerfile: db.Dockerfile
+    networks:
+      - default
+    restart: always
+    ports:
+      # <Port exposed> : < MySQL Port running inside container>
+      - "3306:3306"
+    # setting some env vars to create the DB
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "secret"
+      MYSQL_DATABASE: "message"
+      MYSQL_USER: "tester"
+      MYSQL_PASSWORD: "secret"
+      # OR if you want to use "root" as the user, just these two lines
+      # MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+      # MYSQL_DATABASE: ${DATABASE_NAME}
+
+    # we mount a data volume to make sure we don't lose data
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+  api:
+    container_name:  "message_api"
+    # we want to use the image which is build from our Dockerfile
+    build:
+      context: .
+      dockerfile: api.Dockerfile
+    ports:
+      - "8080:8080"
+    # we are depending on the mysql backend
+    depends_on:
+      - db
+    # We mount the working dir into the container, handy for development
+    # This is what makes the hot reloading work inside of a Docker container
+    volumes:
+      - .:/app/
+  # Create service with RabbitMQ.
+  message-broker:
+    image: rabbitmq:3-management-alpine
+    container_name: message-broker
+    ports:
+      - 5672:5672 # for sender and consumer connections
+      - 15672:15672 # for serve RabbitMQ GUI
+    restart: always
+
+  # Create service with Fiber sender.
+  sender:
+    container_name: sender
+    ports:
+      - 3000:3000
+    build:
+      context: .
+      dockerfile: Dockerfile-sender
+    environment:
+      AMQP_SERVER_URL: amqp://guest:guest@message-broker:5672/
+    restart: always
+    depends_on:
+      - message-broker
+
+
+
+  # Create service with message consumer.
+  consumer:
+    container_name: consumer
+    build:
+      context: .
+      dockerfile: Dockerfile-consumer
+    environment:
+      AMQP_SERVER_URL: amqp://guest:guest@message-broker:5672/
+      SENDGRID_API_KEY: "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"
+    restart: always
+    depends_on:
+      - sender
+      - message-broker
+networks:
+  default:
+volumes:
+  mysql_data:

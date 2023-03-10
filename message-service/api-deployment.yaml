@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\Inholland\go\bin\kompose.exe convert -f docker-compose.yml
+    kompose.version: 1.28.0 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: api
+  name: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: api
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Users\Inholland\go\bin\kompose.exe convert -f docker-compose.yml
+        kompose.version: 1.28.0 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/message-service-default: "true"
+        io.kompose.service: api
+    spec:
+      containers:
+        - image: api
+          name: message-api
+          ports:
+            - containerPort: 8080
+          resources: {}
+          volumeMounts:
+            - mountPath: /app
+              name: api-claim0
+      restartPolicy: Always
+      volumes:
+        - name: api-claim0
+          persistentVolumeClaim:
+            claimName: api-claim0
+status: {}

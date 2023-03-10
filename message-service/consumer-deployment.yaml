@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\Inholland\go\bin\kompose.exe convert -f docker-compose.yml
+    kompose.version: 1.28.0 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: consumer
+  name: consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: consumer
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Users\Inholland\go\bin\kompose.exe convert -f docker-compose.yml
+        kompose.version: 1.28.0 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/message-service-default: "true"
+        io.kompose.service: consumer
+    spec:
+      containers:
+        - env:
+            - name: AMQP_SERVER_URL
+              value: amqp://guest:guest@message-broker:5672/
+            - name: SENDGRID_API_KEY
+              value: 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
+          image: consumer
+          name: consumer
+          resources: {}
+      restartPolicy: Always
+status: {}
