@@ -17,13 +17,13 @@ func (Lecturer) Fields() []ent.Field {
 		field.String("first_name"),
 		field.String("last_name"),
 		field.String("email"),
-		field.String("deleted_at"),
+		field.String("deleted_at").Optional(),
 	}
 }
 
 // Edges of the Lecturer.
 func (Lecturer) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("class_lecturers", ClassLecturer.Type),
+		edge.From("classes", Class.Type).Ref("lecturers"),
 	}
 }

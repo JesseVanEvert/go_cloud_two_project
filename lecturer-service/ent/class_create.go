@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"lecturer/ent/class"
-	"lecturer/ent/classlecturer"
+	"lecturer/ent/lecturer"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -26,19 +26,19 @@ func (cc *ClassCreate) SetName(s string) *ClassCreate {
 	return cc
 }
 
-// AddClassLecturerIDs adds the "class_lecturers" edge to the ClassLecturer entity by IDs.
-func (cc *ClassCreate) AddClassLecturerIDs(ids ...int) *ClassCreate {
-	cc.mutation.AddClassLecturerIDs(ids...)
+// AddLecturerIDs adds the "lecturers" edge to the Lecturer entity by IDs.
+func (cc *ClassCreate) AddLecturerIDs(ids ...int) *ClassCreate {
+	cc.mutation.AddLecturerIDs(ids...)
 	return cc
 }
 
-// AddClassLecturers adds the "class_lecturers" edges to the ClassLecturer entity.
-func (cc *ClassCreate) AddClassLecturers(c ...*ClassLecturer) *ClassCreate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
+// AddLecturers adds the "lecturers" edges to the Lecturer entity.
+func (cc *ClassCreate) AddLecturers(l ...*Lecturer) *ClassCreate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
 	}
-	return cc.AddClassLecturerIDs(ids...)
+	return cc.AddLecturerIDs(ids...)
 }
 
 // Mutation returns the ClassMutation object of the builder.
@@ -114,17 +114,17 @@ func (cc *ClassCreate) createSpec() (*Class, *sqlgraph.CreateSpec) {
 		_spec.SetField(class.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if nodes := cc.mutation.ClassLecturersIDs(); len(nodes) > 0 {
+	if nodes := cc.mutation.LecturersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   class.ClassLecturersTable,
-			Columns: []string{class.ClassLecturersColumn},
+			Table:   class.LecturersTable,
+			Columns: class.LecturersPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: classlecturer.FieldID,
+					Column: lecturer.FieldID,
 				},
 			},
 		}

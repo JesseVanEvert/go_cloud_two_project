@@ -19,40 +19,13 @@ var (
 		Columns:    ClassesColumns,
 		PrimaryKey: []*schema.Column{ClassesColumns[0]},
 	}
-	// ClassLecturersColumns holds the columns for the "class_lecturers" table.
-	ClassLecturersColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "deleted_at", Type: field.TypeTime},
-		{Name: "class_class_lecturers", Type: field.TypeInt, Nullable: true},
-		{Name: "lecturer_class_lecturers", Type: field.TypeInt, Nullable: true},
-	}
-	// ClassLecturersTable holds the schema information for the "class_lecturers" table.
-	ClassLecturersTable = &schema.Table{
-		Name:       "class_lecturers",
-		Columns:    ClassLecturersColumns,
-		PrimaryKey: []*schema.Column{ClassLecturersColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "class_lecturers_classes_class_lecturers",
-				Columns:    []*schema.Column{ClassLecturersColumns[2]},
-				RefColumns: []*schema.Column{ClassesColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "class_lecturers_lecturers_class_lecturers",
-				Columns:    []*schema.Column{ClassLecturersColumns[3]},
-				RefColumns: []*schema.Column{LecturersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-	}
 	// LecturersColumns holds the columns for the "lecturers" table.
 	LecturersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "first_name", Type: field.TypeString},
 		{Name: "last_name", Type: field.TypeString},
 		{Name: "email", Type: field.TypeString},
-		{Name: "deleted_at", Type: field.TypeString},
+		{Name: "deleted_at", Type: field.TypeString, Nullable: true},
 	}
 	// LecturersTable holds the schema information for the "lecturers" table.
 	LecturersTable = &schema.Table{
@@ -60,11 +33,36 @@ var (
 		Columns:    LecturersColumns,
 		PrimaryKey: []*schema.Column{LecturersColumns[0]},
 	}
+	// ClassLecturersColumns holds the columns for the "class_lecturers" table.
+	ClassLecturersColumns = []*schema.Column{
+		{Name: "class_id", Type: field.TypeInt},
+		{Name: "lecturer_id", Type: field.TypeInt},
+	}
+	// ClassLecturersTable holds the schema information for the "class_lecturers" table.
+	ClassLecturersTable = &schema.Table{
+		Name:       "class_lecturers",
+		Columns:    ClassLecturersColumns,
+		PrimaryKey: []*schema.Column{ClassLecturersColumns[0], ClassLecturersColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "class_lecturers_class_id",
+				Columns:    []*schema.Column{ClassLecturersColumns[0]},
+				RefColumns: []*schema.Column{ClassesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "class_lecturers_lecturer_id",
+				Columns:    []*schema.Column{ClassLecturersColumns[1]},
+				RefColumns: []*schema.Column{LecturersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		ClassesTable,
-		ClassLecturersTable,
 		LecturersTable,
+		ClassLecturersTable,
 	}
 )
 

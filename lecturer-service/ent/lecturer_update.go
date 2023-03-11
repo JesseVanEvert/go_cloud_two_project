@@ -6,7 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"lecturer/ent/classlecturer"
+	"lecturer/ent/class"
 	"lecturer/ent/lecturer"
 	"lecturer/ent/predicate"
 
@@ -52,19 +52,33 @@ func (lu *LecturerUpdate) SetDeletedAt(s string) *LecturerUpdate {
 	return lu
 }
 
-// AddClassLecturerIDs adds the "class_lecturers" edge to the ClassLecturer entity by IDs.
-func (lu *LecturerUpdate) AddClassLecturerIDs(ids ...int) *LecturerUpdate {
-	lu.mutation.AddClassLecturerIDs(ids...)
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (lu *LecturerUpdate) SetNillableDeletedAt(s *string) *LecturerUpdate {
+	if s != nil {
+		lu.SetDeletedAt(*s)
+	}
 	return lu
 }
 
-// AddClassLecturers adds the "class_lecturers" edges to the ClassLecturer entity.
-func (lu *LecturerUpdate) AddClassLecturers(c ...*ClassLecturer) *LecturerUpdate {
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (lu *LecturerUpdate) ClearDeletedAt() *LecturerUpdate {
+	lu.mutation.ClearDeletedAt()
+	return lu
+}
+
+// AddClassIDs adds the "classes" edge to the Class entity by IDs.
+func (lu *LecturerUpdate) AddClassIDs(ids ...int) *LecturerUpdate {
+	lu.mutation.AddClassIDs(ids...)
+	return lu
+}
+
+// AddClasses adds the "classes" edges to the Class entity.
+func (lu *LecturerUpdate) AddClasses(c ...*Class) *LecturerUpdate {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return lu.AddClassLecturerIDs(ids...)
+	return lu.AddClassIDs(ids...)
 }
 
 // Mutation returns the LecturerMutation object of the builder.
@@ -72,25 +86,25 @@ func (lu *LecturerUpdate) Mutation() *LecturerMutation {
 	return lu.mutation
 }
 
-// ClearClassLecturers clears all "class_lecturers" edges to the ClassLecturer entity.
-func (lu *LecturerUpdate) ClearClassLecturers() *LecturerUpdate {
-	lu.mutation.ClearClassLecturers()
+// ClearClasses clears all "classes" edges to the Class entity.
+func (lu *LecturerUpdate) ClearClasses() *LecturerUpdate {
+	lu.mutation.ClearClasses()
 	return lu
 }
 
-// RemoveClassLecturerIDs removes the "class_lecturers" edge to ClassLecturer entities by IDs.
-func (lu *LecturerUpdate) RemoveClassLecturerIDs(ids ...int) *LecturerUpdate {
-	lu.mutation.RemoveClassLecturerIDs(ids...)
+// RemoveClassIDs removes the "classes" edge to Class entities by IDs.
+func (lu *LecturerUpdate) RemoveClassIDs(ids ...int) *LecturerUpdate {
+	lu.mutation.RemoveClassIDs(ids...)
 	return lu
 }
 
-// RemoveClassLecturers removes "class_lecturers" edges to ClassLecturer entities.
-func (lu *LecturerUpdate) RemoveClassLecturers(c ...*ClassLecturer) *LecturerUpdate {
+// RemoveClasses removes "classes" edges to Class entities.
+func (lu *LecturerUpdate) RemoveClasses(c ...*Class) *LecturerUpdate {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return lu.RemoveClassLecturerIDs(ids...)
+	return lu.RemoveClassIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -150,33 +164,36 @@ func (lu *LecturerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := lu.mutation.DeletedAt(); ok {
 		_spec.SetField(lecturer.FieldDeletedAt, field.TypeString, value)
 	}
-	if lu.mutation.ClassLecturersCleared() {
+	if lu.mutation.DeletedAtCleared() {
+		_spec.ClearField(lecturer.FieldDeletedAt, field.TypeString)
+	}
+	if lu.mutation.ClassesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   lecturer.ClassLecturersTable,
-			Columns: []string{lecturer.ClassLecturersColumn},
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   lecturer.ClassesTable,
+			Columns: lecturer.ClassesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: classlecturer.FieldID,
+					Column: class.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := lu.mutation.RemovedClassLecturersIDs(); len(nodes) > 0 && !lu.mutation.ClassLecturersCleared() {
+	if nodes := lu.mutation.RemovedClassesIDs(); len(nodes) > 0 && !lu.mutation.ClassesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   lecturer.ClassLecturersTable,
-			Columns: []string{lecturer.ClassLecturersColumn},
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   lecturer.ClassesTable,
+			Columns: lecturer.ClassesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: classlecturer.FieldID,
+					Column: class.FieldID,
 				},
 			},
 		}
@@ -185,17 +202,17 @@ func (lu *LecturerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := lu.mutation.ClassLecturersIDs(); len(nodes) > 0 {
+	if nodes := lu.mutation.ClassesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   lecturer.ClassLecturersTable,
-			Columns: []string{lecturer.ClassLecturersColumn},
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   lecturer.ClassesTable,
+			Columns: lecturer.ClassesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: classlecturer.FieldID,
+					Column: class.FieldID,
 				},
 			},
 		}
@@ -248,19 +265,33 @@ func (luo *LecturerUpdateOne) SetDeletedAt(s string) *LecturerUpdateOne {
 	return luo
 }
 
-// AddClassLecturerIDs adds the "class_lecturers" edge to the ClassLecturer entity by IDs.
-func (luo *LecturerUpdateOne) AddClassLecturerIDs(ids ...int) *LecturerUpdateOne {
-	luo.mutation.AddClassLecturerIDs(ids...)
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (luo *LecturerUpdateOne) SetNillableDeletedAt(s *string) *LecturerUpdateOne {
+	if s != nil {
+		luo.SetDeletedAt(*s)
+	}
 	return luo
 }
 
-// AddClassLecturers adds the "class_lecturers" edges to the ClassLecturer entity.
-func (luo *LecturerUpdateOne) AddClassLecturers(c ...*ClassLecturer) *LecturerUpdateOne {
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (luo *LecturerUpdateOne) ClearDeletedAt() *LecturerUpdateOne {
+	luo.mutation.ClearDeletedAt()
+	return luo
+}
+
+// AddClassIDs adds the "classes" edge to the Class entity by IDs.
+func (luo *LecturerUpdateOne) AddClassIDs(ids ...int) *LecturerUpdateOne {
+	luo.mutation.AddClassIDs(ids...)
+	return luo
+}
+
+// AddClasses adds the "classes" edges to the Class entity.
+func (luo *LecturerUpdateOne) AddClasses(c ...*Class) *LecturerUpdateOne {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return luo.AddClassLecturerIDs(ids...)
+	return luo.AddClassIDs(ids...)
 }
 
 // Mutation returns the LecturerMutation object of the builder.
@@ -268,25 +299,25 @@ func (luo *LecturerUpdateOne) Mutation() *LecturerMutation {
 	return luo.mutation
 }
 
-// ClearClassLecturers clears all "class_lecturers" edges to the ClassLecturer entity.
-func (luo *LecturerUpdateOne) ClearClassLecturers() *LecturerUpdateOne {
-	luo.mutation.ClearClassLecturers()
+// ClearClasses clears all "classes" edges to the Class entity.
+func (luo *LecturerUpdateOne) ClearClasses() *LecturerUpdateOne {
+	luo.mutation.ClearClasses()
 	return luo
 }
 
-// RemoveClassLecturerIDs removes the "class_lecturers" edge to ClassLecturer entities by IDs.
-func (luo *LecturerUpdateOne) RemoveClassLecturerIDs(ids ...int) *LecturerUpdateOne {
-	luo.mutation.RemoveClassLecturerIDs(ids...)
+// RemoveClassIDs removes the "classes" edge to Class entities by IDs.
+func (luo *LecturerUpdateOne) RemoveClassIDs(ids ...int) *LecturerUpdateOne {
+	luo.mutation.RemoveClassIDs(ids...)
 	return luo
 }
 
-// RemoveClassLecturers removes "class_lecturers" edges to ClassLecturer entities.
-func (luo *LecturerUpdateOne) RemoveClassLecturers(c ...*ClassLecturer) *LecturerUpdateOne {
+// RemoveClasses removes "classes" edges to Class entities.
+func (luo *LecturerUpdateOne) RemoveClasses(c ...*Class) *LecturerUpdateOne {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return luo.RemoveClassLecturerIDs(ids...)
+	return luo.RemoveClassIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -370,33 +401,36 @@ func (luo *LecturerUpdateOne) sqlSave(ctx context.Context) (_node *Lecturer, err
 	if value, ok := luo.mutation.DeletedAt(); ok {
 		_spec.SetField(lecturer.FieldDeletedAt, field.TypeString, value)
 	}
-	if luo.mutation.ClassLecturersCleared() {
+	if luo.mutation.DeletedAtCleared() {
+		_spec.ClearField(lecturer.FieldDeletedAt, field.TypeString)
+	}
+	if luo.mutation.ClassesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   lecturer.ClassLecturersTable,
-			Columns: []string{lecturer.ClassLecturersColumn},
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   lecturer.ClassesTable,
+			Columns: lecturer.ClassesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: classlecturer.FieldID,
+					Column: class.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := luo.mutation.RemovedClassLecturersIDs(); len(nodes) > 0 && !luo.mutation.ClassLecturersCleared() {
+	if nodes := luo.mutation.RemovedClassesIDs(); len(nodes) > 0 && !luo.mutation.ClassesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   lecturer.ClassLecturersTable,
-			Columns: []string{lecturer.ClassLecturersColumn},
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   lecturer.ClassesTable,
+			Columns: lecturer.ClassesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: classlecturer.FieldID,
+					Column: class.FieldID,
 				},
 			},
 		}
@@ -405,17 +439,17 @@ func (luo *LecturerUpdateOne) sqlSave(ctx context.Context) (_node *Lecturer, err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := luo.mutation.ClassLecturersIDs(); len(nodes) > 0 {
+	if nodes := luo.mutation.ClassesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   lecturer.ClassLecturersTable,
-			Columns: []string{lecturer.ClassLecturersColumn},
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   lecturer.ClassesTable,
+			Columns: lecturer.ClassesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: classlecturer.FieldID,
+					Column: class.FieldID,
 				},
 			},
 		}

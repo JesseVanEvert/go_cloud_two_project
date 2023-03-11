@@ -14,8 +14,6 @@ type Tx struct {
 	config
 	// Class is the client for interacting with the Class builders.
 	Class *ClassClient
-	// ClassLecturer is the client for interacting with the ClassLecturer builders.
-	ClassLecturer *ClassLecturerClient
 	// Lecturer is the client for interacting with the Lecturer builders.
 	Lecturer *LecturerClient
 
@@ -150,7 +148,6 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Class = NewClassClient(tx.config)
-	tx.ClassLecturer = NewClassLecturerClient(tx.config)
 	tx.Lecturer = NewLecturerClient(tx.config)
 }
 

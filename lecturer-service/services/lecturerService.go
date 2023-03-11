@@ -3,16 +3,16 @@ package Services
 import (
 	"fmt"
 	"lecturer/ent"
+	"lecturer/models"
 	"lecturer/repositories"
 )
 
 type LecturerService interface {
 	GetAllLecturers() ([]*ent.Lecturer, error)
 	GetLecturerByID(id int) (*ent.Lecturer, error)
-	CreateLecturer(lecturer *ent.Lecturer) (*ent.Lecturer, error)
+	CreateLecturer(lecturer models.LecturerPayload) (*ent.Lecturer, error)
 	AddLecturerToClass(lecturerID, classID int) (string, error)
 	GetAllClasses() ([]*ent.Class, error)
-	//NewLecturerService(repo repositories.LecturerRepository) DefaultLecturerService
 }	
 
 type DefaultLecturerService struct {
@@ -35,12 +35,12 @@ func (dl DefaultLecturerService) GetAllLecturers() ([]*ent.Lecturer, error){
 	return lecturers, nil
 }
 
-func (dl DefaultLecturerService) CreateLecturer(lecturer *ent.Lecturer) (*ent.Lecturer, error){
-	lecturer, err := dl.repo.CreateLecturer(lecturer)
+func (dl DefaultLecturerService) CreateLecturer(lecturer models.LecturerPayload) (*ent.Lecturer, error){
+	lecturerResponse, err := dl.repo.CreateLecturer(lecturer)
 	if err != nil {
 		return nil, fmt.Errorf("creating lecturer: %w", err)
 	}
-	return lecturer, nil
+	return lecturerResponse, nil
 }
 
 func (dl DefaultLecturerService) GetAllClasses() ([]*ent.Class, error){

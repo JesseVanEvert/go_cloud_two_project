@@ -1,11 +1,13 @@
 package event
 
-import (
+/*import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"cmd/api/handlers"
+	"../cmd/api/handlers"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -135,3 +137,4 @@ func logEvent(entry Payload) error {
 
 	return nil
 }
+*/

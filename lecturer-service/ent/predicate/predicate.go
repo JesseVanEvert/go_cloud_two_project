@@ -9,8 +9,5 @@ import (
 // Class is the predicate function for class builders.
 type Class func(*sql.Selector)
 
-// ClassLecturer is the predicate function for classlecturer builders.
-type ClassLecturer func(*sql.Selector)
-
 // Lecturer is the predicate function for lecturer builders.
 type Lecturer func(*sql.Selector)

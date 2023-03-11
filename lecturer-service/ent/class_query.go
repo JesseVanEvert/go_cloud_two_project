@@ -7,7 +7,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"lecturer/ent/class"
-	"lecturer/ent/classlecturer"
+	"lecturer/ent/lecturer"
 	"lecturer/ent/predicate"
 	"math"
 
@@ -19,11 +19,11 @@ import (
 // ClassQuery is the builder for querying Class entities.
 type ClassQuery struct {
 	config
-	ctx                *QueryContext
-	order              []OrderFunc
-	inters             []Interceptor
-	predicates         []predicate.Class
-	withClassLecturers *ClassLecturerQuery
+	ctx           *QueryContext
+	order         []OrderFunc
+	inters        []Interceptor
+	predicates    []predicate.Class
+	withLecturers *LecturerQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -60,9 +60,9 @@ func (cq *ClassQuery) Order(o ...OrderFunc) *ClassQuery {
 	return cq
 }
 
-// QueryClassLecturers chains the current query on the "class_lecturers" edge.
-func (cq *ClassQuery) QueryClassLecturers() *ClassLecturerQuery {
-	query := (&ClassLecturerClient{config: cq.config}).Query()
+// QueryLecturers chains the current query on the "lecturers" edge.
+func (cq *ClassQuery) QueryLecturers() *LecturerQuery {
+	query := (&LecturerClient{config: cq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := cq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -73,8 +73,8 @@ func (cq *ClassQuery) QueryClassLecturers() *ClassLecturerQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(class.Table, class.FieldID, selector),
-			sqlgraph.To(classlecturer.Table, classlecturer.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, class.ClassLecturersTable, class.ClassLecturersColumn),
+			sqlgraph.To(lecturer.Table, lecturer.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, class.LecturersTable, class.LecturersPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -267,26 +267,26 @@ func (cq *ClassQuery) Clone() *ClassQuery {
 		return nil
 	}
 	return &ClassQuery{
-		config:             cq.config,
-		ctx:                cq.ctx.Clone(),
-		order:              append([]OrderFunc{}, cq.order...),
-		inters:             append([]Interceptor{}, cq.inters...),
-		predicates:         append([]predicate.Class{}, cq.predicates...),
-		withClassLecturers: cq.withClassLecturers.Clone(),
+		config:        cq.config,
+		ctx:           cq.ctx.Clone(),
+		order:         append([]OrderFunc{}, cq.order...),
+		inters:        append([]Interceptor{}, cq.inters...),
+		predicates:    append([]predicate.Class{}, cq.predicates...),
+		withLecturers: cq.withLecturers.Clone(),
 		// clone intermediate query.
 		sql:  cq.sql.Clone(),
 		path: cq.path,
 	}
 }
 
-// WithClassLecturers tells the query-builder to eager-load the nodes that are connected to
-// the "class_lecturers" edge. The optional arguments are used to configure the query builder of the edge.
-func (cq *ClassQuery) WithClassLecturers(opts ...func(*ClassLecturerQuery)) *ClassQuery {
-	query := (&ClassLecturerClient{config: cq.config}).Query()
+// WithLecturers tells the query-builder to eager-load the nodes that are connected to
+// the "lecturers" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *ClassQuery) WithLecturers(opts ...func(*LecturerQuery)) *ClassQuery {
+	query := (&LecturerClient{config: cq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	cq.withClassLecturers = query
+	cq.withLecturers = query
 	return cq
 }
 
@@ -369,7 +369,7 @@ func (cq *ClassQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Class,
 		nodes       = []*Class{}
 		_spec       = cq.querySpec()
 		loadedTypes = [1]bool{
-			cq.withClassLecturers != nil,
+			cq.withLecturers != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -390,44 +390,74 @@ func (cq *ClassQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Class,
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := cq.withClassLecturers; query != nil {
-		if err := cq.loadClassLecturers(ctx, query, nodes,
-			func(n *Class) { n.Edges.ClassLecturers = []*ClassLecturer{} },
-			func(n *Class, e *ClassLecturer) { n.Edges.ClassLecturers = append(n.Edges.ClassLecturers, e) }); err != nil {
+	if query := cq.withLecturers; query != nil {
+		if err := cq.loadLecturers(ctx, query, nodes,
+			func(n *Class) { n.Edges.Lecturers = []*Lecturer{} },
+			func(n *Class, e *Lecturer) { n.Edges.Lecturers = append(n.Edges.Lecturers, e) }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (cq *ClassQuery) loadClassLecturers(ctx context.Context, query *ClassLecturerQuery, nodes []*Class, init func(*Class), assign func(*Class, *ClassLecturer)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*Class)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
+func (cq *ClassQuery) loadLecturers(ctx context.Context, query *LecturerQuery, nodes []*Class, init func(*Class), assign func(*Class, *Lecturer)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Class)
+	nids := make(map[int]map[*Class]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
 		if init != nil {
-			init(nodes[i])
+			init(node)
 		}
 	}
-	query.withFKs = true
-	query.Where(predicate.ClassLecturer(func(s *sql.Selector) {
-		s.Where(sql.InValues(class.ClassLecturersColumn, fks...))
-	}))
-	neighbors, err := query.All(ctx)
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(class.LecturersTable)
+		s.Join(joinT).On(s.C(lecturer.FieldID), joinT.C(class.LecturersPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(class.LecturersPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(class.LecturersPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Class]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Lecturer](ctx, query, qr, query.inters)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.class_class_lecturers
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "class_class_lecturers" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		nodes, ok := nids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "class_class_lecturers" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected "lecturers" node returned %v`, n.ID)
 		}
-		assign(node, n)
+		for kn := range nodes {
+			assign(kn, n)
+		}
 	}
 	return nil
 }

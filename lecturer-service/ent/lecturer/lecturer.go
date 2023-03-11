@@ -15,17 +15,15 @@ const (
 	FieldEmail = "email"
 	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
 	FieldDeletedAt = "deleted_at"
-	// EdgeClassLecturers holds the string denoting the class_lecturers edge name in mutations.
-	EdgeClassLecturers = "class_lecturers"
+	// EdgeClasses holds the string denoting the classes edge name in mutations.
+	EdgeClasses = "classes"
 	// Table holds the table name of the lecturer in the database.
 	Table = "lecturers"
-	// ClassLecturersTable is the table that holds the class_lecturers relation/edge.
-	ClassLecturersTable = "class_lecturers"
-	// ClassLecturersInverseTable is the table name for the ClassLecturer entity.
-	// It exists in this package in order to avoid circular dependency with the "classlecturer" package.
-	ClassLecturersInverseTable = "class_lecturers"
-	// ClassLecturersColumn is the table column denoting the class_lecturers relation/edge.
-	ClassLecturersColumn = "lecturer_class_lecturers"
+	// ClassesTable is the table that holds the classes relation/edge. The primary key declared below.
+	ClassesTable = "class_lecturers"
+	// ClassesInverseTable is the table name for the Class entity.
+	// It exists in this package in order to avoid circular dependency with the "class" package.
+	ClassesInverseTable = "classes"
 )
 
 // Columns holds all SQL columns for lecturer fields.
@@ -36,6 +34,12 @@ var Columns = []string{
 	FieldEmail,
 	FieldDeletedAt,
 }
+
+var (
+	// ClassesPrimaryKey and ClassesColumn2 are the table columns denoting the
+	// primary key for the classes relation (M2M).
+	ClassesPrimaryKey = []string{"class_id", "lecturer_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {

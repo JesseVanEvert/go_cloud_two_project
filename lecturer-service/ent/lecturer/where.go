@@ -324,6 +324,16 @@ func DeletedAtHasSuffix(v string) predicate.Lecturer {
 	return predicate.Lecturer(sql.FieldHasSuffix(FieldDeletedAt, v))
 }
 
+// DeletedAtIsNil applies the IsNil predicate on the "deleted_at" field.
+func DeletedAtIsNil() predicate.Lecturer {
+	return predicate.Lecturer(sql.FieldIsNull(FieldDeletedAt))
+}
+
+// DeletedAtNotNil applies the NotNil predicate on the "deleted_at" field.
+func DeletedAtNotNil() predicate.Lecturer {
+	return predicate.Lecturer(sql.FieldNotNull(FieldDeletedAt))
+}
+
 // DeletedAtEqualFold applies the EqualFold predicate on the "deleted_at" field.
 func DeletedAtEqualFold(v string) predicate.Lecturer {
 	return predicate.Lecturer(sql.FieldEqualFold(FieldDeletedAt, v))
@@ -334,24 +344,24 @@ func DeletedAtContainsFold(v string) predicate.Lecturer {
 	return predicate.Lecturer(sql.FieldContainsFold(FieldDeletedAt, v))
 }
 
-// HasClassLecturers applies the HasEdge predicate on the "class_lecturers" edge.
-func HasClassLecturers() predicate.Lecturer {
+// HasClasses applies the HasEdge predicate on the "classes" edge.
+func HasClasses() predicate.Lecturer {
 	return predicate.Lecturer(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ClassLecturersTable, ClassLecturersColumn),
+			sqlgraph.Edge(sqlgraph.M2M, true, ClassesTable, ClassesPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasClassLecturersWith applies the HasEdge predicate on the "class_lecturers" edge with a given conditions (other predicates).
-func HasClassLecturersWith(preds ...predicate.ClassLecturer) predicate.Lecturer {
+// HasClassesWith applies the HasEdge predicate on the "classes" edge with a given conditions (other predicates).
+func HasClassesWith(preds ...predicate.Class) predicate.Lecturer {
 	return predicate.Lecturer(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ClassLecturersInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ClassLecturersTable, ClassLecturersColumn),
+			sqlgraph.To(ClassesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, ClassesTable, ClassesPrimaryKey...),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

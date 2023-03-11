@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"lecturer/ent/class"
-	"lecturer/ent/classlecturer"
 	"lecturer/ent/lecturer"
 	"reflect"
 
@@ -41,9 +40,8 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		class.Table:         class.ValidColumn,
-		classlecturer.Table: classlecturer.ValidColumn,
-		lecturer.Table:      lecturer.ValidColumn,
+		class.Table:    class.ValidColumn,
+		lecturer.Table: lecturer.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {
