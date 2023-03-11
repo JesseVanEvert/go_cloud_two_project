@@ -1,11 +1,11 @@
-from sqlalchemy.orm import DeclarativeMeta
-
-from models import Student,student_schema,people_schema,Classroom, class_schema, ClassSchema, classroom_schema
+from models import Student, student_schema, people_schema, Classroom, class_schema, ClassSchema, classroom_schema
 from flask import abort, make_response, jsonify
 import json
 from config import db
-from datetime import datetime,time
+from datetime import datetime, time
 from rabbitmq_connection import RabbitMQConnection
+
+
 
 
 
@@ -24,8 +24,24 @@ def create(student):
         new_student.deleted_at = '--'
         db.session.add(new_student)
         db.session.commit()
-        classroom = Classroom.query.all()
-        send_classroom(classroom)
+        class_data = Classroom.query.all()
+        connection = RabbitMQConnection('rabbitmq')
+
+        # Convert class_data to JSON string
+        class_data_serializable = [classroom_schema.dump(classroom) for classroom in class_data]
+        class_data_json = json.dumps(class_data_serializable)
+
+        # Publish a message to the 'student_creation' queue
+        connection.publish_message('classroom', class_data_json)
+
+        # Consume messages from the 'student_creation' queue
+        def callback(ch, method, properties, body):
+            # Convert JSON string back to Python object
+            class_data_received = body
+            print("Received message:", body)
+
+        # Close the connection
+        connection.close()
         return student_schema.dump(new_student), 201
     else:
         abort(406, f"Person with last name {lname} already exists")
@@ -44,7 +60,7 @@ def update(student_id):
     existing_student = Student.query.filter(Student.id == student_id).one_or_none()
 
     if existing_student:
-        #update_student = student_schema.load(student, session=db.session)
+        # update_student = student_schema.load(student, session=db.session)
         existing_student.deleted_at = datetime.now()
         db.session.merge(existing_student)
         db.session.commit()
@@ -52,27 +68,6 @@ def update(student_id):
     else:
         abort(404, f"Person with last name {student_id} not found")
 
-
-def send_classroom(class_data):
-    connection = RabbitMQConnection('localhost')
-
-    # Convert class_data to JSON string
-    class_data_serializable = [classroom_schema.dump(classroom) for classroom in class_data]
-    class_data_json = json.dumps(class_data_serializable)
-
-    # Publish a message to the 'student_creation' queue
-    connection.publish_message('student_creation', class_data_json)
-
-    # Consume messages from the 'student_creation' queue
-    def callback(ch, method, properties, body):
-        # Convert JSON string back to Python object
-        class_data_received = body
-        print("Received message:", class_data_received)
-
-    connection.consume_messages('student_creation', callback)
-
-    # Close the connection
-    connection.close()
 
 
 # def undelete(lname):

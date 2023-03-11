@@ -8,33 +8,25 @@
 #      - "8000:8000"
 #      - "5672:5672"
 
-version: '3.9'
+version: '3.8'
+
 services:
-  student-app:
+  app:
     build:
       context: .
       dockerfile: student-app.Dockerfile
     ports:
       - "8000:8000"
-      - "5672:5672"
     environment:
-      - RABBITMQ_DEFAULT_USER=user
-      - RABBITMQ_DEFAULT_PASS=password
+      RABBITMQ_HOST: rabbitmq
     depends_on:
       - rabbitmq
-    networks:
-      - my-network
+
   rabbitmq:
-    image: rabbitmq:3.9.9-management-alpine
-    hostname: rabbitmq
+    image: rabbitmq:3-management
     environment:
-      - RABBITMQ_DEFAULT_USER=user
-      - RABBITMQ_DEFAULT_PASS=password
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
     ports:
-      - "5674:5672"
       - "15672:15672"
-    networks:
-      - my-network
-networks:
-  my-network:
-    driver: bridge
+      - "5672:5672"

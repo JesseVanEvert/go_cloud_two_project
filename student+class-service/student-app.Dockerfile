@@ -1,26 +1,28 @@
+# Base image
 FROM python:3.8-slim-buster
 
-# Install RabbitMQ
-RUN apt-get update && \
-    apt-get install -y rabbitmq-server
-
-# Set the working directory to /app
-WORKDIR /app
+# Set the working directory
+WORKDIR /
 
 # Copy the requirements file to the working directory
 COPY requirements.txt .
 
-# Install the required packages
-RUN pip install -r requirements.txt
+# Install the dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the application code into the container
+# Copy the application code to the working directory
 COPY . .
+# Set the environment variables for RabbitMQ
+ENV RABBITMQ_HOST=localhost
+ENV RABBITMQ_PORT=5672
+ENV RABBITMQ_USERNAME=guest
+ENV RABBITMQ_PASSWORD=guest
 
-# Expose the required ports
+# Expose the port for the application
 EXPOSE 8000
-EXPOSE 5672
-### Start the application
-CMD ["sh", "-c", "rabbitmq-server start && python app.py"]
+
+# Start the application and connect to RabbitMQ
+CMD python app.py
 #FROM python:3.9-slim-buster
 #
 #RUN apt-get update && apt-get install -y curl gnupg
