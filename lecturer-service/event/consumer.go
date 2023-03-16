@@ -1,13 +1,14 @@
 package event
 
-/*import (
-	"bytes"
+import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"lecturer/ent"
+	"lecturer/models"
+	"lecturer/repositories"
+	Services "lecturer/services"
 	"log"
-	"net/http"
-	"cmd/api/handlers"
-	"../cmd/api/handlers"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -15,6 +16,7 @@ package event
 type Consumer struct {
 	conn      *amqp.Connection
 	queueName string
+	Service  Services.ClassRoomService
 }
 
 func NewConsumer(conn *amqp.Connection) (Consumer, error) {
@@ -36,6 +38,31 @@ func (consumer *Consumer) setup() error {
 		return err
 	}
 
+	// connect to database
+	client, err := ent.Open("mysql", "root:@tcp(localhost:3306)/LecturerTest?parseTime=True")
+
+	if err != nil {
+		log.Fatalf("failed opening connection to mysql: %v", err)
+	}
+
+	ctx := context.Background()
+
+	classService := Services.NewClassRoomService(repositories.NewClassRoomRepository(ctx, client))
+
+	consumer.Service = classService
+
+	if err := client.Schema.Create(ctx); err != nil {
+		log.Fatalf("failed creating schema resources: %v", err)
+	}
+
+	defer client.Close()
+	// Run the auto migration tool.
+	if err := client.Schema.Create(context.Background()); err != nil {
+		log.Fatalf("failed creating schema resources: %v", err)
+	}
+
+	
+
 	return declareExchange(channel)
 }
 
@@ -44,54 +71,87 @@ type Payload struct {
 	Data string `json:"data"`
 }
 
-func (consumer *Consumer) Listen(topics []string) error {
-	ch, err := consumer.conn.Channel()
+func (consumer *Consumer) Listen() error {
+	// Define RabbitMQ server URL.
+	amqpServerURL := "amqp://guest:guest@localhost:5672/"
+	// Create a new RabbitMQ connection.
+	connectRabbitMQ, err := amqp.Dial(amqpServerURL)
 	if err != nil {
-		return err
+		panic(err)
 	}
-	defer ch.Close()
+	defer connectRabbitMQ.Close()
 
-	q, err := declareRandomQueue(ch)
+	// Opening a channel to our RabbitMQ instance over
+	// the connection we have already established.
+	channelRabbitMQ, err := connectRabbitMQ.Channel()
 	if err != nil {
-		return err
+		panic(err)
 	}
+	defer channelRabbitMQ.Close()
 
-	for _, s := range topics {
-		ch.QueueBind(
-			q.Name,
-			s,
-			"messages",
-			false,
-			nil,
-		)
-
-		if err != nil {
-			return err
-		}
-	}
-
-	messages, err := ch.Consume(q.Name, "", true, false, false, false, nil)
+	// Subscribing to QueueService1 for getting messages.
+	classrooms, err := channelRabbitMQ.Consume(
+		"Classes", // queue name
+		"",              // consumer
+		true,            // auto-ack
+		false,           // exclusive
+		false,           // no local
+		false,           // no wait
+		nil,             // arguments
+	)
 	if err != nil {
-		return err
+		log.Println(err)
 	}
+
+	// Build a welcome message.
+	log.Println("Successfully connected to RabbitMQ")
+	log.Println("Waiting for messages")
 
 	forever := make(chan bool)
 	go func() {
-		for d := range messages {
-			var payload Payload
-			_ = json.Unmarshal(d.Body, &payload)
+		for classroom := range classrooms {
+			var classRoomQueueMessage models.ClassRoomQueueMessage
+			_ = json.Unmarshal(classroom.Body, &classRoomQueueMessage)
 
-			go handlePayload(payload)
+			go consumer.handleClassRoomMessage(classRoomQueueMessage)
 		}
 	}()
 
-	fmt.Printf("Waiting for message [Exchange, Queue] [messages, %s]\n", q.Name)
+	fmt.Printf("Waiting for message [Exchange, Queue] [messages, %s]\n", "Messages")
 	<-forever
 
 	return nil
 }
 
-func handlePayload(payload Payload) {
+func (consumer *Consumer) handleClassRoomMessage(classroom models.ClassRoomQueueMessage) {
+	switch classroom.Operation {
+	case "DELETE":
+		// Delete the classroom
+		message, err := consumer.Service.DeleteClassRoom(classroom.ClassRoom.ID)
+		if err != nil {
+			log.Println(err)
+		}
+		log.Println(message)
+	case "CREATE":
+		// Create the classroom
+		class, err := consumer.Service.CreateClassRoom(classroom.ClassRoom)
+		if err != nil {
+			log.Println(err)
+		}
+		log.Println(class.Name)
+	case "UPDATE":
+		// Update the classroom
+		class, err := consumer.Service.UpdateClassRoom(classroom.ClassRoom)
+		if err != nil {
+			log.Println(err)
+		}
+		log.Println(class.Name)
+	default:
+		log.Println("Invalid operation")
+	}
+}
+
+/*func handlePayload(payload Payload) {
 	switch payload.Name {
 	case "log", "event":
 		// log whatever we get
@@ -136,5 +196,4 @@ func logEvent(entry Payload) error {
 	}
 
 	return nil
-}
-*/
+}*/

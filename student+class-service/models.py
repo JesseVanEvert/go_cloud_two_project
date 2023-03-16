@@ -1,10 +1,24 @@
 from datetime import datetime,time
+from enum import Enum
 
 from marshmallow_sqlalchemy import fields
 
 from config import db, ma, app
 
+class Operation(Enum):
+    DELETE = 0,
+    CREATE = 1,
+    UPDATE = 2
 
+class ClassRoomQueueMessage(object):
+    operation = None,
+    class_room = None,
+    class_room_id = None
+
+    def __init__(self, operation, classroom, class_room_id):
+        self.operation = operation
+        self.classroom = classroom
+        self.class_room_id = class_room_id
     
 class Student(db.Model):
     __tablename__ = "student"

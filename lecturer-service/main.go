@@ -81,6 +81,16 @@ func main() {
 
 	lecturerService := Services.NewLecturerService(repositories.NewLecturerRepository(ctx, client))
 
+	consumer, err := event.NewConsumer(rabbitConn)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = consumer.Listen()
+	if err != nil {
+		log.Println(err)
+	}
+
 	c := Config{
 		Rabbit: rabbitConn,
 		Helpers: helpers.NewHelpers(),

@@ -1,5 +1,49 @@
 package models
 
+/*class Operation(Enum):
+    DELETE = 0,
+    CREATE = 1,
+    UPDATE = 2
+
+class ClassRoomQueueMessage(object):
+    operation = None,
+    class_room = None,
+    class_room_id = None
+
+    def __init__(self, operation, classroom, class_room_id):
+        self.operation = operation
+        self.classroom = classroom
+        self.class_room_id = class_room_id
+
+		class Classroom(db.Model):
+		__tablename__ = "classroom"
+		id = db.Column(db.Integer, primary_key=True)
+		classname = db.Column(db.String, nullable=False)
+		student = db.relationship(
+			Student,
+			backref="classroom",
+			cascade="all, delete, delete-orphan",
+			single_parent=True,
+			order_by="desc(Student.email)",
+		)*/
+
+var Operation  = []string {
+	"DELETE",
+	"CREATE",
+	"UPDATE",
+}
+
+type ClassRoomQueueMessage struct {
+	Operation   string `json:"operation"`
+	ClassRoom ClassRoom `json:"classroom"`
+	ClassRoomId int `json:"classroom_id"`
+}
+
+type ClassRoom struct {
+	ID        int    `json:"id"`
+	Classname string `json:"classname"`
+}
+
 type RequestPayload struct {
 	Action  string         `json:"action"`
 	Auth    AuthPayload    `json:"auth,omitempty"`

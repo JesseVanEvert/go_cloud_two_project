@@ -2,7 +2,9 @@
 
 from datetime import datetime
 from flask import abort, make_response
-from models import Classroom, student_schema, classroom_schema, class_schema,Student
+from models import Classroom, student_schema, classroom_schema, class_schema, Student, Operation, ClassRoomQueueMessage
+from rabbitmq_connection import RabbitMQConnection
+import json
 
 from config import db
 
@@ -20,6 +22,18 @@ def create(classroom):
         #new_classroom = ClassSchema.load(classroom, session=db.session)
         db.session.add(new_classroom)
         db.session.commit()
+        connection = RabbitMQConnection('rabbitmq-1')
+
+        # Convert class_data to JSON string
+        class_data_serializable = classroom_schema.dump(new_classroom)
+        #class_data_json = json.dumps(class_data_serializable)
+
+        class_room_message = ClassRoomQueueMessage(Operation.CREATE, class_data_serializable)
+        class_room_message_json = json.dumps(class_room_message)
+
+        # Publish a message to the 'Classes' queue
+        connection.publish_message('Classes', class_room_message_json)
+        
         return classroom_schema.dump(new_classroom), 201
     else:
         abort(406, f"Classroom with Classname {classname} already exists")

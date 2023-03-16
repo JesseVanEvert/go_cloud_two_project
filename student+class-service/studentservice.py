@@ -31,14 +31,15 @@ def create(student):
         class_data_serializable = [classroom_schema.dump(classroom) for classroom in class_data]
         class_data_json = json.dumps(class_data_serializable)
 
-        # Publish a message to the 'student_creation' queue
-        connection.publish_message('classroom', class_data_json)
+
+        # Publish a message to the 'Classes' queue
+        connection.publish_message('Classes', class_data_json)
 
         # Consume messages from the 'student_creation' queue
-        def callback(ch, method, properties, body):
+        #def callback(ch, method, properties, body):
             # Convert JSON string back to Python object
-            class_data_received = body
-            print("Received message:", body)
+        #    class_data_received = body
+        #    print("Received message:", body)
 
         # Close the connection
         connection.close()
