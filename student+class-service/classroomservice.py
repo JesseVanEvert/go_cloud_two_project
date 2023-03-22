@@ -3,7 +3,8 @@
 from datetime import datetime
 from flask import abort, make_response
 from models import Classroom, student_schema, classroom_schema, class_schema, Student, Operation, ClassRoomQueueMessage
-from rabbitmq_connection import RabbitMQConnection
+##from rabbitmq_connection import RabbitMQConnection
+import pika, os
 import json
 
 from config import db
@@ -19,20 +20,40 @@ def create(classroom):
 
     if existing_classroom is None:
         new_classroom = classroom_schema.load(classroom, session=db.session)
-        #new_classroom = ClassSchema.load(classroom, session=db.session)
+
         db.session.add(new_classroom)
         db.session.commit()
-        connection = RabbitMQConnection('rabbitmq-1')
+        ##connection = RabbitMQConnection('amqp://guest:guest@localhost:5672/')
+
+        url = os.environ.get('CLOUDAMQP_URL', 'amqp://guest:guest@localhost:5672/')
+        params = pika.URLParameters(url)
+        params.socket_timeout = 5
+
+        connection = pika.BlockingConnection(params) # Connect to CloudAMQP
+        channel = connection.channel() # start a channel
+        channel.queue_declare(queue='Classes') # Declare a queue
 
         # Convert class_data to JSON string
-        class_data_serializable = classroom_schema.dump(new_classroom)
+       
         #class_data_json = json.dumps(class_data_serializable)
 
-        class_room_message = ClassRoomQueueMessage(Operation.CREATE, class_data_serializable)
+        #class_room_message = ClassRoomQueueMessage(Operation.CREATE, new_classroom.classname, new_classroom.id)
+        #print(class_room_message)
+        #class_data_serializable = class_room_message.dump(class_room_message)
+        #print(class_data_serializable)
+        #class_room_message_json = json.dumps(class_data_serializable.__dict__)
+
+        class_room_message = {
+            "operation": "CREATE",
+            "class_room": new_classroom.classname,
+            "class_room_id": new_classroom.id
+        }
+
         class_room_message_json = json.dumps(class_room_message)
+        print("Sending message:", class_room_message_json)
 
         # Publish a message to the 'Classes' queue
-        connection.publish_message('Classes', class_room_message_json)
+        channel.basic_publish('', 'Classes', class_room_message_json)
         
         return classroom_schema.dump(new_classroom), 201
     else:

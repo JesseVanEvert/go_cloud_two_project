@@ -80,22 +80,20 @@ func main() {
 	log.Printf("Starting broker service on port %s\n", webPort)
 
 	lecturerService := Services.NewLecturerService(repositories.NewLecturerRepository(ctx, client))
-
-	consumer, err := event.NewConsumer(rabbitConn)
-	if err != nil {
-		log.Println(err)
-	}
-
-	err = consumer.Listen()
-	if err != nil {
-		log.Println(err)
-	}
+	classService := Services.NewClassRoomService(repositories.NewClassRoomRepository(ctx, client))
 
 	c := Config{
 		Rabbit: rabbitConn,
 		Helpers: helpers.NewHelpers(),
 		Service: lecturerService,
 	}
+
+	consumer, err := event.NewConsumer(rabbitConn, classService)
+	if err != nil {
+		log.Println(err)
+	}
+
+	go consumer.Listen()
 
 	c.registerRoutes()
 }
@@ -188,6 +186,7 @@ func (c *Config)  pushToQueue(from string, to []string, message string) error {
 	}
 	return nil
 }
+
 
 func (c *Config ) CreateLecturer(w http.ResponseWriter, lect *http.Request) {
 	var lecturerPayload models.LecturerPayload

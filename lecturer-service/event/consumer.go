@@ -1,12 +1,9 @@
 package event
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"lecturer/ent"
 	"lecturer/models"
-	"lecturer/repositories"
 	Services "lecturer/services"
 	"log"
 
@@ -19,9 +16,10 @@ type Consumer struct {
 	Service  Services.ClassRoomService
 }
 
-func NewConsumer(conn *amqp.Connection) (Consumer, error) {
+func NewConsumer(conn *amqp.Connection, service Services.ClassRoomService) (Consumer, error) {
 	consumer := Consumer{
 		conn: conn,
+		Service: service,
 	}
 
 	err := consumer.setup()
@@ -39,27 +37,27 @@ func (consumer *Consumer) setup() error {
 	}
 
 	// connect to database
-	client, err := ent.Open("mysql", "root:@tcp(localhost:3306)/LecturerTest?parseTime=True")
+	//client, err := ent.Open("mysql", "root:@tcp(localhost:3306)/LecturerTest?parseTime=True")
 
-	if err != nil {
-		log.Fatalf("failed opening connection to mysql: %v", err)
-	}
+	//if err != nil {
+	//	log.Fatalf("failed opening connection to mysql: %v", err)
+	//}
+//
+	//ctx := context.Background()
+//
+	//classService := Services.NewClassRoomService(repositories.NewClassRoomRepository(ctx, client))
+//
+	//consumer.Service = classService
 
-	ctx := context.Background()
-
-	classService := Services.NewClassRoomService(repositories.NewClassRoomRepository(ctx, client))
-
-	consumer.Service = classService
-
-	if err := client.Schema.Create(ctx); err != nil {
-		log.Fatalf("failed creating schema resources: %v", err)
-	}
-
-	defer client.Close()
-	// Run the auto migration tool.
-	if err := client.Schema.Create(context.Background()); err != nil {
-		log.Fatalf("failed creating schema resources: %v", err)
-	}
+	//if err := client.Schema.Create(ctx); err != nil {
+	//	log.Fatalf("failed creating schema resources: %v", err)
+	//}
+//
+	//defer client.Close()
+	//// Run the auto migration tool.
+	//if err := client.Schema.Create(context.Background()); err != nil {
+	//	log.Fatalf("failed creating schema resources: %v", err)
+	//}
 
 	
 
@@ -110,9 +108,9 @@ func (consumer *Consumer) Listen() error {
 	forever := make(chan bool)
 	go func() {
 		for classroom := range classrooms {
+			log.Println(classroom)
 			var classRoomQueueMessage models.ClassRoomQueueMessage
 			_ = json.Unmarshal(classroom.Body, &classRoomQueueMessage)
-
 			go consumer.handleClassRoomMessage(classRoomQueueMessage)
 		}
 	}()
@@ -123,25 +121,26 @@ func (consumer *Consumer) Listen() error {
 	return nil
 }
 
-func (consumer *Consumer) handleClassRoomMessage(classroom models.ClassRoomQueueMessage) {
-	switch classroom.Operation {
+func (consumer *Consumer) handleClassRoomMessage(classroomMessage models.ClassRoomQueueMessage) {
+	var classroom =  models.ClassRoom{ID: classroomMessage.ClassRoomId, Classname: classroomMessage.ClassRoom}
+	switch classroomMessage.Operation {
 	case "DELETE":
 		// Delete the classroom
-		message, err := consumer.Service.DeleteClassRoom(classroom.ClassRoom.ID)
+		message, err := consumer.Service.DeleteClassRoom(classroom.ID)
 		if err != nil {
 			log.Println(err)
 		}
 		log.Println(message)
 	case "CREATE":
 		// Create the classroom
-		class, err := consumer.Service.CreateClassRoom(classroom.ClassRoom)
+		class, err := consumer.Service.CreateClassRoom(classroom)
 		if err != nil {
 			log.Println(err)
 		}
 		log.Println(class.Name)
 	case "UPDATE":
 		// Update the classroom
-		class, err := consumer.Service.UpdateClassRoom(classroom.ClassRoom)
+		class, err := consumer.Service.UpdateClassRoom(classroom)
 		if err != nil {
 			log.Println(err)
 		}

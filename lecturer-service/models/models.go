@@ -35,13 +35,13 @@ var Operation  = []string {
 
 type ClassRoomQueueMessage struct {
 	Operation   string `json:"operation"`
-	ClassRoom ClassRoom `json:"classroom"`
-	ClassRoomId int `json:"classroom_id"`
+	ClassRoom string `json:"class_room"`
+	ClassRoomId int `json:"class_room_id"`
 }
 
 type ClassRoom struct {
-	ID        int    `json:"id"`
-	Classname string `json:"classname"`
+	ID        int    
+	Classname string 
 }
 
 type RequestPayload struct {

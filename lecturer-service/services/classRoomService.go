@@ -18,9 +18,10 @@ type DefaultClassRoomService struct {
 }
 
 func (dl DefaultClassRoomService) CreateClassRoom(classroom models.ClassRoom) (*ent.Class, error) {
-	classroomResponse, error := dl.repo.CreateClassRoom(classroom)
-	if error != nil {
-		return nil, fmt.Errorf("creating classroom: %w", error)
+	fmt.Print("Classroom: ", classroom)
+	classroomResponse, err := dl.repo.CreateClassRoom(classroom)
+	if err != nil {
+		return nil, fmt.Errorf("creating classroom: %w", err)
 	}
 
 	return classroomResponse, nil
