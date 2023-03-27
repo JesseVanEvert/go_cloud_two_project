@@ -61,7 +61,15 @@ func (consumer *Consumer) Listen() error {
 	}
 	defer channelRabbitMQ.Close()
 
-	// Subscribing to QueueService1 for getting messages.
+	channelRabbitMQ.QueueDeclare(
+		"Classes",    // name?
+		true, // durable?
+		false, // delete when unused?
+		false,  // exclusive?
+		false, // no-wait?
+		nil,   // arguments?
+	)
+
 	classrooms, err := channelRabbitMQ.Consume(
 		"Classes", // queue name
 		"",              // consumer
@@ -89,7 +97,7 @@ func (consumer *Consumer) Listen() error {
 		}
 	}()
 
-	fmt.Printf("Waiting for message [Exchange, Queue] [messages, %s]\n", "Messages")
+	fmt.Printf("Waiting for message [Exchange, Queue] [MessageExchange, %s]\n", "Messages")
 	<-forever
 
 	return nil

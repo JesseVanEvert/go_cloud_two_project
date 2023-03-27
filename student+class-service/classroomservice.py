@@ -23,7 +23,6 @@ def create(classroom):
 
         db.session.add(new_classroom)
         db.session.commit()
-        ##connection = RabbitMQConnection('amqp://guest:guest@localhost:5672/')
 
         url = os.environ.get('CLOUDAMQP_URL', 'amqp://guest:guest@localhost:5672/')
         params = pika.URLParameters(url)
@@ -31,17 +30,7 @@ def create(classroom):
 
         connection = pika.BlockingConnection(params) # Connect to CloudAMQP
         channel = connection.channel() # start a channel
-        channel.queue_declare(queue='Classes') # Declare a queue
-
-        # Convert class_data to JSON string
-       
-        #class_data_json = json.dumps(class_data_serializable)
-
-        #class_room_message = ClassRoomQueueMessage(Operation.CREATE, new_classroom.classname, new_classroom.id)
-        #print(class_room_message)
-        #class_data_serializable = class_room_message.dump(class_room_message)
-        #print(class_data_serializable)
-        #class_room_message_json = json.dumps(class_data_serializable.__dict__)
+        channel.queue_declare(queue='Classes', durable=True) # Declare a queue
 
         class_room_message = {
             "operation": "CREATE",
