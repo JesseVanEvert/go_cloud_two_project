@@ -10,6 +10,7 @@ type ClassRoomRepository interface {
    CreateClassRoom(classroom models.ClassRoom) (*ent.Class, error)
    DeleteClassRoom(id int) (string, error)
    UpdateClassRoom(classroom models.ClassRoom) (*ent.Class, error)
+   GetAllClasses() ([]*ent.Class)
 }
 
 type DefaultClassRoomRepository struct {
@@ -28,6 +29,10 @@ func (dl DefaultClassRoomRepository) DeleteClassRoom(id int) (string, error) {
 
 func (dl DefaultClassRoomRepository) UpdateClassRoom(classroom models.ClassRoom) (*ent.Class, error) {
 	return dl.client.Class.UpdateOneID(classroom.ID).SetName(classroom.Classname).Save(dl.ctx)
+}
+
+func (dl DefaultClassRoomRepository) GetAllClasses() ([]*ent.Class) {
+	return dl.client.Class.Query().AllX(dl.ctx);
 }
 
 func NewClassRoomRepository(ctx context.Context, client *ent.Client) ClassRoomRepository {

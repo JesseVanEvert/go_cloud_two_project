@@ -14,7 +14,6 @@ type LecturerRepository interface {
 	GetLecturerByID(id int) (*ent.Lecturer, error)
 	CreateLecturer(lecturer models.LecturerPayload) (*ent.Lecturer, error)
 	AddLecturerToClass(lecturerID, classID int) (string, error)
-	GetAllClasses() ([]*ent.Class, error)
 }
 
 type LecturerRepositoryDefault struct {

@@ -12,7 +12,6 @@ import (
 
 type Consumer struct {
 	conn      *amqp.Connection
-	queueName string
 	Service  Services.ClassRoomService
 }
 
@@ -35,31 +34,6 @@ func (consumer *Consumer) setup() error {
 	if err != nil {
 		return err
 	}
-
-	// connect to database
-	//client, err := ent.Open("mysql", "root:@tcp(localhost:3306)/LecturerTest?parseTime=True")
-
-	//if err != nil {
-	//	log.Fatalf("failed opening connection to mysql: %v", err)
-	//}
-//
-	//ctx := context.Background()
-//
-	//classService := Services.NewClassRoomService(repositories.NewClassRoomRepository(ctx, client))
-//
-	//consumer.Service = classService
-
-	//if err := client.Schema.Create(ctx); err != nil {
-	//	log.Fatalf("failed creating schema resources: %v", err)
-	//}
-//
-	//defer client.Close()
-	//// Run the auto migration tool.
-	//if err := client.Schema.Create(context.Background()); err != nil {
-	//	log.Fatalf("failed creating schema resources: %v", err)
-	//}
-
-	
 
 	return declareExchange(channel)
 }
@@ -150,49 +124,3 @@ func (consumer *Consumer) handleClassRoomMessage(classroomMessage models.ClassRo
 	}
 }
 
-/*func handlePayload(payload Payload) {
-	switch payload.Name {
-	case "log", "event":
-		// log whatever we get
-		err := logEvent(payload)
-		if err != nil {
-			log.Println(err)
-		}
-
-	case "message":
-		println("Message received: " + payload.Data)
-
-	default:
-		err := logEvent(payload)
-		if err != nil {
-			log.Println(err)
-		}
-	}
-}
-
-func logEvent(entry Payload) error {
-	jsonData, _ := json.MarshalIndent(entry, "", "\t")
-
-	logServiceURL := "http://logger-service/log"
-
-	request, err := http.NewRequest("POST", logServiceURL, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return err
-	}
-
-	request.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-
-	response, err := client.Do(request)
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusAccepted {
-		return err
-	}
-
-	return nil
-}*/

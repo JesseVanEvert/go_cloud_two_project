@@ -12,7 +12,6 @@ type LecturerService interface {
 	GetLecturerByID(id int) (*ent.Lecturer, error)
 	CreateLecturer(lecturer models.LecturerPayload) (*ent.Lecturer, error)
 	AddLecturerToClass(lecturerID, classID int) (string, error)
-	GetAllClasses() ([]*ent.Class, error)
 }	
 
 type DefaultLecturerService struct {
@@ -43,13 +42,6 @@ func (dl DefaultLecturerService) CreateLecturer(lecturer models.LecturerPayload)
 	return lecturerResponse, nil
 }
 
-func (dl DefaultLecturerService) GetAllClasses() ([]*ent.Class, error){
-	classes, err := dl.repo.GetAllClasses()
-	if err != nil {
-		return nil, fmt.Errorf("getting all classes: %w", err)
-	}
-	return classes, nil
-}
 
 func (dl DefaultLecturerService) AddLecturerToClass(lecturerID, classID int) (string, error){
 	message, err := dl.repo.AddLecturerToClass(lecturerID, classID)

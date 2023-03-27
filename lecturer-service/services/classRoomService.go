@@ -11,6 +11,7 @@ type ClassRoomService interface {
 	CreateClassRoom(classroom models.ClassRoom) (*ent.Class, error)
 	DeleteClassRoom(id int) (string, error)
 	UpdateClassRoom(classroom models.ClassRoom) (*ent.Class, error)
+	GetAllClasses() ([]*ent.Class)
 }	
 
 type DefaultClassRoomService struct {
@@ -43,6 +44,10 @@ func (dl DefaultClassRoomService) UpdateClassRoom(classroom models.ClassRoom) (*
 	}
 
 	return classroomResponse, nil
+}
+
+func (dl DefaultClassRoomService) GetAllClasses() ([]*ent.Class) {
+	return dl.repo.GetAllClasses()
 }
 
 func NewClassRoomService(repo repositories.ClassRoomRepository) ClassRoomService {

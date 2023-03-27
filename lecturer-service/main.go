@@ -30,7 +30,8 @@ const webPort = "80"
 type Config struct {
 	Rabbit *amqp.Connection
 	Helpers helpers.Helpers
-	Service Services.LecturerService
+	LecturerService Services.LecturerService
+	ClassService Services.ClassRoomService
 	Channel *amqp.Channel
 }
 
@@ -85,7 +86,8 @@ func main() {
 	c := Config{
 		Rabbit: rabbitConn,
 		Helpers: helpers.NewHelpers(),
-		Service: lecturerService,
+		LecturerService: lecturerService,
+		ClassService: classService,
 	}
 
 	consumer, err := event.NewConsumer(rabbitConn, classService)
@@ -197,7 +199,7 @@ func (c *Config ) CreateLecturer(w http.ResponseWriter, lect *http.Request) {
 		return 
 	}
 
-	lect3, error := c.Service.CreateLecturer(lecturerPayload)
+	lect3, error := c.LecturerService.CreateLecturer(lecturerPayload)
 
 	if(error != nil){
 		c.Helpers.ErrorJSON(w, error)
@@ -214,12 +216,7 @@ func (c *Config ) CreateLecturer(w http.ResponseWriter, lect *http.Request) {
 }
 
 func (c *Config) GetAllClasses(w http.ResponseWriter, r *http.Request) {
-	classes, error := c.Service.GetAllClasses()
-
-	if(error != nil){
-		c.Helpers.ErrorJSON(w, error)
-		return
-	}
+	classes := c.ClassService.GetAllClasses()
 
 	var payload models.JsonResponse
 
@@ -239,7 +236,7 @@ func (c *Config ) AddLecturerToClass(w http.ResponseWriter, lect *http.Request) 
 		return
 	}
 
-	message, error := c.Service.AddLecturerToClass(classLecturerPayload.ClassId, classLecturerPayload.LecturerId)
+	message, error := c.LecturerService.AddLecturerToClass(classLecturerPayload.ClassId, classLecturerPayload.LecturerId)
 
 	if(error != nil){
 		c.Helpers.ErrorJSON(w, error)
@@ -255,7 +252,7 @@ func (c *Config ) AddLecturerToClass(w http.ResponseWriter, lect *http.Request) 
 }
 
 func (c *Config ) GetAllLecturers(w http.ResponseWriter, request *http.Request)  {
-	lecturers, err := c.Service.GetAllLecturers()
+	lecturers, err := c.LecturerService.GetAllLecturers()
 
 	if err != nil {
 		c.Helpers.ErrorJSON(w, err)
@@ -279,7 +276,7 @@ func (c *Config) GetLecturerByID (w http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	lecturer, err := c.Service.GetLecturerByID(idPayload.ID)
+	lecturer, err := c.LecturerService.GetLecturerByID(idPayload.ID)
 
 	if err != nil {
 		c.Helpers.ErrorJSON(w, err)
