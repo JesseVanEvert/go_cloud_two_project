@@ -23,16 +23,3 @@ EXPOSE 8000
 
 # Start the application and connect to RabbitMQ
 CMD python app.py
-#FROM python:3.9-slim-buster
-#
-#RUN apt-get update && apt-get install -y curl gnupg
-#RUN curl -s https://dl.bintray.com/rabbitmq/Keys/rabbitmq-release-signing-key.asc | apt-key add -
-#RUN echo "deb https://dl.bintray.com/rabbitmq/debian buster main" > /etc/apt/sources.list.d/bintray.rabbitmq.list
-#RUN apt-get update && apt-get install -y rabbitmq-server
-#
-#COPY requirements.txt /app/
-#WORKDIR /app
-#RUN pip install --no-cache-dir -r requirements.txt
-#
-#COPY . /app/
-#CMD ["python", "app.py"]
