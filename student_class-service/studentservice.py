@@ -15,7 +15,7 @@ def create(student):
     new_student.deleted_at = '--'
     db.session.add(new_student)
     db.session.commit()
-    
+
     return student_schema.dump(new_student), 201
 
 

@@ -2,49 +2,40 @@ version: "3"
 
 services:
   lecturer-service:
-    build:
-      context: ./../lecturer-service
-      dockerfile: ./../lecturer-service/lecturer-service.dockerfile
-    restart: always
+    image: broodjebapao/lecturer-service:1.0.0
     ports:
-      - "8080:81"
+      - "8080:80"
     deploy:
       mode: replicated
       replicas: 1
-
-  message-service:
     environment:
-      SENDGRID_API_KEY: "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"
-    build:
-      context: ./../message-service
-      dockerfile: ./../message-service/message-service.Dockerfile
-    ports:
-      - "8080:82"
-    deploy:
-      mode: replicated
-      replicas: 1
+      lECTURER_DATABASE_TYPE: "mysql"
+      LECTURER_MYSQL_CONNECTION_STRING: "mysql://tester:secret@lecturer-service-db:3306/lecturer"
+      AMQP_SERVER_URL: "amqp://guest:guest@rabbitmq:5672/"
 
   student_class-service:
-    build:
-      context: .
-      dockerfile: ../student_class-service/student_class-service.Dockerfile
+    image: broodjebapao/student_class-service:1.0.0
     ports:
-      - "8000:8000"
-    environment:
-      RABBITMQ_HOST: rabbitmq
-
-  rabbitmq:
-    image: "rabbitmq:3.9-alpine"
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "8000:81"
     deploy:
       mode: replicated
       replicas: 1
+    environment:
+      AMQP_SERVER_URL: "amqp://guest:guest@rabbitmq:5672/"
+
+  message-service:
+    image: broodjebapao/message-service:1.0.0
+    ports:
+      - "8181:82"
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      AMQP_SERVER_URL: amqp://guest:guest@message-broker:5672/
+      SENDGRID_API_KEY: "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"
 
   message-service-db:
     image: "mysql:8.0.23"
-    restart: always
     ports:
       - "3306:3306"
     environment:
@@ -57,7 +48,6 @@ services:
 
   lecturer-service-db:
     image: "mysql:8.0.23"
-    restart: always
     ports:
       - "3301:3306"
     environment:
@@ -68,8 +58,10 @@ services:
     volumes:
       - lecturer_mysql_data:/var/lib/mysql
 
-networks:
-  default:
+  rabbitmq:
+    image: "rabbitmq:3.9-alpine"
+    deploy:
+      mode: global
 
 volumes:
   message_mysql_data:

@@ -49,10 +49,10 @@ func (c *Config) registerRoutes() {
 	http.ListenAndServe(":8080", mux)
 }
 func main() {
-
+		
 
 	// connect to database
-	client, err := ent.Open("mysql", "root:@tcp(localhost:3306)/LecturerTest?parseTime=True")
+	client, err := ent.Open(os.Getenv("lECTURER_DATABASE_TYPE"), os.Getenv("LECTURER_MYSQL_CONNECTION_STRING"))
 
 	if err != nil {
         log.Fatalf("failed opening connection to mysql: %v", err)
@@ -107,7 +107,7 @@ func connect() (*amqp.Connection, error) {
 
 	// don't continue until rabbit is ready
 	for {
-		c, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+		c, err := amqp.Dial(os.Getenv("AMQP_SERVER_URL"))
 		if err != nil {
 			fmt.Println("RabbitMQ not yet ready...")
 			counts++

@@ -8,13 +8,13 @@
 #      - "8000:8000"
 #      - "5672:5672"
 
-version: '3.8'
+version: "3.8"
 
 services:
   app:
     build:
       context: .
-      dockerfile: student-app.Dockerfile
+      dockerfile: student_class-service.Dockerfile
     ports:
       - "8000:8000"
     environment:
