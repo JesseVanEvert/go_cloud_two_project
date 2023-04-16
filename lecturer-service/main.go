@@ -54,9 +54,14 @@ func main() {
 	// connect to database
 	client, err := ent.Open(os.Getenv("lECTURER_DATABASE_TYPE"), os.Getenv("LECTURER_MYSQL_CONNECTION_STRING"))
 
+	log.Println(os.Getenv("lECTURER_DATABASE_TYPE"))
+	log.Println(os.Getenv("LECTURER_MYSQL_CONNECTION_STRING"))
+
 	if err != nil {
         log.Fatalf("failed opening connection to mysql: %v", err)
     }
+
+	defer client.Close()
 
 	ctx := context.Background()
 
@@ -64,11 +69,11 @@ func main() {
 		log.Fatalf("failed creating schema resources: %v", err)
 	}
 
-    defer client.Close()
+
     // Run the auto migration tool.
-    if err := client.Schema.Create(context.Background()); err != nil {
+    /*if err := client.Schema.Create(context.Background()); err != nil {
         log.Fatalf("failed creating schema resources: %v", err)
-    }
+    }*/
 	
 	// try to connect to rabbitmq
 	rabbitConn, err := connect()

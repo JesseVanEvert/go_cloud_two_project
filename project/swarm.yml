@@ -10,8 +10,8 @@ services:
       replicas: 1
     environment:
       lECTURER_DATABASE_TYPE: "mysql"
-      LECTURER_MYSQL_CONNECTION_STRING: "mysql://tester:secret@lecturer-service-db:3306/lecturer"
-      AMQP_SERVER_URL: "amqp://guest:guest@rabbitmq:5672/"
+      LECTURER_MYSQL_CONNECTION_STRING: "tester:secret@tcp(10.0.1.37:3306)/lecturer?parseTime=True"
+      AMQP_SERVER_URL: amqp://guest:guest@message-broker:5672/
 
   student_class-service:
     image: broodjebapao/student_class-service:1.0.0
@@ -49,10 +49,9 @@ services:
   lecturer-service-db:
     image: "mysql:8.0.23"
     ports:
-      - "3301:3306"
+      - "3307:3306"
     environment:
       MYSQL_RANDOM_ROOT_PASSWORD: "secret"
-      MYSQL_DATABASE: "lecturer"
       MYSQL_USER: "tester"
       MYSQL_PASSWORD: "secret"
     volumes:
