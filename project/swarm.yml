@@ -11,7 +11,7 @@ services:
     environment:
       lECTURER_DATABASE_TYPE: "mysql"
       LECTURER_MYSQL_CONNECTION_STRING: "tester:secret@tcp(10.0.1.37:3306)/lecturer?parseTime=True"
-      AMQP_SERVER_URL: amqp://guest:guest@message-broker:5672/
+      AMQP_SERVER_URL: "amqp://guest:guest@rabbitmq:5672/"
 
   student_class-service:
     image: broodjebapao/student_class-service:1.0.0
@@ -31,7 +31,7 @@ services:
       mode: replicated
       replicas: 1
     environment:
-      AMQP_SERVER_URL: amqp://guest:guest@message-broker:5672/
+      AMQP_SERVER_URL: "amqp://guest:guest@rabbitmq:5672/"
       SENDGRID_API_KEY: "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"
 
   message-service-db:

@@ -6,6 +6,7 @@ import (
 	"lecturer/models"
 	Services "lecturer/services"
 	"log"
+	"os"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -45,7 +46,7 @@ type Payload struct {
 
 func (consumer *Consumer) Listen() error {
 	// Define RabbitMQ server URL.
-	amqpServerURL := "amqp://guest:guest@localhost:5672/"
+	amqpServerURL := os.Getenv("AMQP_SERVER_URL")
 	// Create a new RabbitMQ connection.
 	connectRabbitMQ, err := amqp.Dial(amqpServerURL)
 	if err != nil {
