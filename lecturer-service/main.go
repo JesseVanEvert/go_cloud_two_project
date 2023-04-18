@@ -39,6 +39,8 @@ type Config struct {
 func (c *Config) registerRoutes() {
 	mux := chi.NewRouter()
 
+	
+
 	mux.HandleFunc("/createLecturer", c.CreateLecturer)
 	mux.HandleFunc("/getAllLecturers", c.GetAllLecturers)
 	mux.HandleFunc("/addLecturerToClass", c.AddLecturerToClass)
@@ -49,8 +51,6 @@ func (c *Config) registerRoutes() {
 	http.ListenAndServe(":8080", mux)
 }
 func main() {
-		
-
 	// connect to database
 	client, err := ent.Open(os.Getenv("lECTURER_DATABASE_TYPE"), os.Getenv("LECTURER_MYSQL_CONNECTION_STRING"))
 
