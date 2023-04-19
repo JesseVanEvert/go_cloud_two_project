@@ -1,9 +1,11 @@
 # Base image
 FROM python:3.8-slim-buster
 
-# Set the working directory
-WORKDIR /
+RUN mkdir /app
 
+COPY . /app
+
+WORKDIR /app
 # Copy the requirements file to the working directory
 COPY requirements.txt .
 
