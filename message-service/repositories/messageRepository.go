@@ -1,10 +1,10 @@
-package Domain
+package repositories
 
 import (
 	"database/sql"
 	"log"
 	"time"
-
+	"domain"
 	_ "github.com/go-sql-driver/mysql"
 )
 

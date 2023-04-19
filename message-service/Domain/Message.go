@@ -1,4 +1,4 @@
-package Domain
+package domain
 
 type Message struct {
 	MessageID     int    `json:"messageID"`

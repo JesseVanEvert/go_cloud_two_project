@@ -17,15 +17,14 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	_ "github.com/go-sql-driver/mysql"
+	/*_ "github.com/go-sql-driver/mysql"
 	_ "github.com/jackc/pgconn"
 	_ "github.com/jackc/pgx/v4"
-	_ "github.com/jackc/pgx/v4/stdlib"
+	_ "github.com/jackc/pgx/v4/stdlib"*/
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 const webPort = "80"
-
 
 type Config struct {
 	Rabbit *amqp.Connection
@@ -38,8 +37,6 @@ type Config struct {
 
 func (c *Config) registerRoutes() {
 	mux := chi.NewRouter()
-
-	
 
 	mux.HandleFunc("/createLecturer", c.CreateLecturer)
 	mux.HandleFunc("/getAllLecturers", c.GetAllLecturers)
@@ -69,13 +66,6 @@ func main() {
 		log.Fatalf("failed creating schema resources: %v", err)
 	}
 
-
-    // Run the auto migration tool.
-    /*if err := client.Schema.Create(context.Background()); err != nil {
-        log.Fatalf("failed creating schema resources: %v", err)
-    }*/
-	
-	// try to connect to rabbitmq
 	rabbitConn, err := connect()
 	if err != nil {
 		log.Println(err)

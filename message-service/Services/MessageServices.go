@@ -1,32 +1,33 @@
-package Services
+package services
 
 import (
-	"MesseageMicroService/restApi/Domain"
+	"messages/domain"
 )
 
 type MessageService interface {
-	GetAllMessages() ([]Domain.Message, error)
-	FindMessageById(id string) (*Domain.Message, *Domain.AppError)
-	FindMessageByLecturerEmail(lecturerEmail string) ([]Domain.Message, *Domain.AppError)
-}
-type DefaultMessageService struct {
-	repo Domain.MessageRepository
+	GetAllMessages() ([]domain.Message, error)
+	FindMessageById(id string) (*domain.Message, *domain.AppError)
+	FindMessageByLecturerEmail(lecturerEmail string) ([]domain.Message, *domain.AppError)
 }
 
-func (s DefaultMessageService) GetAllMessages() ([]Domain.Message, error) {
+type DefaultMessageService struct {
+	repo domain.MessageRepository
+}
+
+func (s DefaultMessageService) GetAllMessages() ([]domain.Message, error) {
 
 	return s.repo.FindAll()
 }
-func (s DefaultMessageService) FindMessageById(id string) (*Domain.Message, *Domain.AppError) {
+func (s DefaultMessageService) FindMessageById(id string) (*domain.Message, *domain.AppError) {
 
 	return s.repo.FindById(id)
 }
 
-func (s DefaultMessageService) FindMessageByLecturerEmail(lecturerEmail string) ([]Domain.Message, *Domain.AppError) {
+func (s DefaultMessageService) FindMessageByLecturerEmail(lecturerEmail string) ([]domain.Message, *domain.AppError) {
 
 	return s.repo.FindMessageByLecturerEmail(lecturerEmail)
 }
 
-func NewMessageService(repo Domain.MessageRepository) DefaultMessageService {
+func NewMessageService(repo domain.MessageRepository) DefaultMessageService {
 	return DefaultMessageService{repo}
 }
