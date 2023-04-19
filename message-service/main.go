@@ -18,15 +18,20 @@ import (
 
 	"github.com/gorilla/mux"*/
 
+	"database/sql"
+	"fmt"
 	"log"
-	"net/http"
-	"os"
+	"math"
+	"messages/event"
+	"messages/helpers"
 	models "messages/models"
 	"messages/repositories"
 	services "messages/services"
-	"math"
+	"net/http"
+	"os"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -62,10 +67,6 @@ func (c *Config) registerRoutes() {
 }
 
 func main() {
-	messageRepo := domain.NewMessageRepositoryDB()
-	messageServices := services.NewMessageService(messageRepo)
-
-
 	rabbitConn, err := connect()
 	if err != nil {
 		log.Println(err)
@@ -73,6 +74,20 @@ func main() {
 	}
 
 	defer rabbitConn.Close()
+
+	db, err := sql.Open("mysql", "tester:secret@tcp(db:3306)/message")
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	db.SetMaxOpenConns(100)
+	db.SetMaxIdleConns(10)
+	db.SetConnMaxLifetime(time.Minute * 3)
+
+	messageRepo := repositories.NewMessageRepository(db)
+	messageServices := services.NewMessageService(messageRepo)
+
 
 	log.Printf("Starting broker service on port %s\n", webPort)
 

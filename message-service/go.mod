@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/go-chi/chi/v5 v5.0.8
 	github.com/sendgrid/rest v2.6.9+incompatible // indirect
 	golang.org/x/net v0.9.0 // indirect
 )

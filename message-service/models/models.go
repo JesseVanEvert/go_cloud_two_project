@@ -7,7 +7,7 @@ type JsonResponse struct {
 }
 
 type IDPayload struct {
-	ID int `json:"id"`
+	ID string `json:"id"`
 }
 
 type LecturEmailPayload struct {
