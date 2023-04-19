@@ -21,7 +21,7 @@ def create(student):
 
 def read_one(student_id):
     student = Student.query.filter(Student.id == student_id).one_or_none()
-
+    
     if student is not None:
         return student_schema.dump(student)
     else:
