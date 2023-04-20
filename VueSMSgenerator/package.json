@@ -1,0 +1,21 @@
+{
+  "name": "sms-generator",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vue-cli-service serve --port 8383",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.2.6",
+    "bootstrap": "^5.2.3",
+    "vue": "^3.2.45",
+    "vue-router": "^4.1.6"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.0.0",
+    "@vue/cli-service": "^5.0.8",
+    "vite": "^4.0.0"
+  }
+}
