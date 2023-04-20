@@ -10,8 +10,8 @@ import (
 )
 
 type MessageRepository interface {
-	FindAll() ( []domain.Message, error)
-	FindById(id string) (domain.Message, error)
+	FindAll() ( []*domain.Message, error)
+	FindById(id string) (*domain.Message, error)
 	FindMessageByLecturerEmail(lecturerEmail string) ([]*domain.Message, error)
 }
 
@@ -19,7 +19,7 @@ type DefaultMessageRepository struct {
 	db *sql.DB
 }
 
-func (ch DefaultMessageRepository) FindAll() ([]domain.Message, error) {
+func (ch DefaultMessageRepository) FindAll() ([]*domain.Message, error) {
 	findall_sql := "SELECT * FROM message"
 	rows, err := ch.db.Query(findall_sql)
 
@@ -27,16 +27,16 @@ func (ch DefaultMessageRepository) FindAll() ([]domain.Message, error) {
 		return nil, fmt.Errorf("error: %w", err)
 	}
 
-	messages := make([]domain.Message, 0)
+	messages := make([]*domain.Message, 0)
 	for rows.Next() {
 		var message domain.Message
 		err = rows.Scan(&message.MessageID, &message.LecturerEmail, &message.ToEmail, &message.Content)
 
 		if err != nil {
-			return nil, fmt.Errorf("creating classroom: %w", err)
+			return nil, fmt.Errorf("finding messages: %w", err)
 		}
 
-		messages = append(messages, message)
+		messages = append(messages, &message)
 	}
 
 	return messages, nil
@@ -49,18 +49,18 @@ func (ch DefaultMessageRepository) FindById(ID string) (*domain.Message, error) 
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("creating classroom: %w", err)
+			return nil, fmt.Errorf("error: %w", err)
 		} else {
 			log.Println("Error scanning rows ById" + err.Error())
-			return nil, fmt.Errorf("creating classroom: %w", err)
+			return nil, fmt.Errorf("error: %w", err)
 		}
 	}
 
 	return &message, nil
 }
 
-func (ch DefaultMessageRepository) FindMessageByLecturerEmail(lecturerEmail string) ([]domain.Message, error) {
-	var messages []domain.Message
+func (ch DefaultMessageRepository) FindMessageByLecturerEmail(lecturerEmail string) ([]*domain.Message, error) {
+	var messages []*domain.Message
 
 	rows, err := ch.db.Query("SELECT * FROM message WHERE lecturerEmail=?", lecturerEmail)
 
@@ -77,7 +77,7 @@ func (ch DefaultMessageRepository) FindMessageByLecturerEmail(lecturerEmail stri
 		if err != nil {
 			return nil, fmt.Errorf("creating classroom: %w", err)
 		}
-		messages = append(messages, message)
+		messages = append(messages, &message)
 	}
 	return messages, nil
 }

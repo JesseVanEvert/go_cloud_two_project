@@ -1,23 +1,6 @@
 package main
 
 import (
-	/*"fmt"
-	"log"
-	"net/http"
-
-	"github.com/go-chi/cors"
-
-	app "MesseageMicroService/restApi/App"
-	"MesseageMicroService/restApi/Domain"
-	"MesseageMicroService/restApi/Services"
-
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/jackc/pgconn"
-	_ "github.com/jackc/pgx/v4"
-	_ "github.com/jackc/pgx/v4/stdlib"
-
-	"github.com/gorilla/mux"*/
-
 	"database/sql"
 	"fmt"
 	"log"
@@ -87,7 +70,6 @@ func main() {
 
 	messageRepo := repositories.NewMessageRepository(db)
 	messageServices := services.NewMessageService(messageRepo)
-
 
 	log.Printf("Starting broker service on port %s\n", webPort)
 
@@ -177,20 +159,11 @@ func (c *Config) FindByMessageId(w http.ResponseWriter, request *http.Request) {
 	payload.Data = message
 
 	c.Helpers.WriteJSON(w, http.StatusOK, payload)
-	/*params := mux.Vars(r)
-	message, err := c.MessageService.FindMessageById(params["id"])
-
-	if err != nil {
-		writeResponse(w, err.Code, err.AsMessage())
-	} else {
-		writeResponse(w, http.StatusOK, message)
-	}*/
-
 }
 
 // Find message By lecturer email
 func (c *Config) FindMessageByLecturerEmail(w http.ResponseWriter, request *http.Request) {
-	var lecturerEmailPayload models.LecturerEmailPayload
+	var lecturerEmailPayload models.LecturEmailPayload
 	err := c.Helpers.ReadJSON(w, request, &lecturerEmailPayload)
 	
 	if err != nil {
@@ -211,10 +184,4 @@ func (c *Config) FindMessageByLecturerEmail(w http.ResponseWriter, request *http
 	payload.Data = message
 
 	c.Helpers.WriteJSON(w, http.StatusOK, payload)
-
-	/*if err != nil {
-		writeResponse(w, err.Code, err.AsMessage())
-	} else {
-		writeResponse(w, http.StatusOK, message)
-	}*/
 }
