@@ -38,7 +38,7 @@ export default {
           message: this.message
         }
       }
-      axios.post('/send-message', payload)
+      axios.post('/sendMessage', payload)
         .then(response => {
           alert(response.data.message)
         })
