@@ -9,6 +9,8 @@ RUN CGO_ENABLED=0 go build -o main .
 
 RUN chmod +x /app/main
 
+RUN go get github.com/go-sql-driver/mysql
+
 # build a tiny docker image
 FROM alpine:latest
 

@@ -14,6 +14,7 @@ import (
 	"os"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -35,11 +36,7 @@ type Config struct {
 
 
 func main() {
-	// connect to database
-	client, err := ent.Open(os.Getenv("lECTURER_DATABASE_TYPE"), os.Getenv("LECTURER_MYSQL_CONNECTION_STRING"))
-
-	log.Println(os.Getenv("lECTURER_DATABASE_TYPE"))
-	log.Println(os.Getenv("LECTURER_MYSQL_CONNECTION_STRING"))
+	client, err := ent.Open(os.Getenv("DATABASE_TYPE"), os.Getenv("MYSQL_URL"))
 
 	if err != nil {
         log.Fatalf("failed opening connection to mysql: %v", err)
