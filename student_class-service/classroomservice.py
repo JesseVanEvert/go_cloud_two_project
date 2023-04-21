@@ -71,11 +71,11 @@ def update(classname, classroom):
 
 
 def delete(classname):
-    existing_classroom = Classroom.query.filter(Classroom.classname == classname).one_or_none()
+    existing_classroom = Classroom.query.filter(Classroom.id == id).one_or_none()
 
     if existing_classroom:
         db.session.delete(existing_classroom)
         db.session.commit()
-        return make_response(f"{classname} successfully deleted", 200)
+        return make_response(f"{id} successfully deleted", 200)
     else:
-        abort(404, f"Classroom with last name {classname} not found")
+        abort(404, f"Classroom with id {id} not found")
