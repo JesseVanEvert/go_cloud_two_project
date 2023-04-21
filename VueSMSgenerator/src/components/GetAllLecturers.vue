@@ -27,7 +27,7 @@
             </div>
             <br>
             <h2>Add Lecturer to Class</h2>
-            <form @submit.prevent="addLecturer">
+            <form @submit.prevent="addLecturerClass">
                 <label for="lecturerID">Lecturer ID:</label>
                 <input type="number" id="lecturerID" v-model="lecturerID">
                 <label for="classID">Class ID:</label>
@@ -105,7 +105,7 @@ export default {
 
         fetchLecturers() {
             axios
-                .get("http://localhost:8000/api/lecturer")
+                .get("http://localhost:8000/getAllLecturers")
                 .then(response => {
                     this.lecturer = response.data;
                 })
@@ -113,9 +113,9 @@ export default {
                     console.error(error);
                 });
         },
-        getStudentById(id) {
+        getLecturerById(id) {
             axios
-                .get(`http://localhost:8000/api/lecturer/${id}`)
+                .get("http://localhost:8080/getLecturerByID/${id}")
                 .then(response => {
                     this.lecturer = response.data;
                 })
@@ -125,7 +125,7 @@ export default {
         },
         addLecturer() {
             axios
-                .post("http://localhost:8000/api/lecturer", this.newLecturer)
+                .post("http://localhost:8000/createLecturer", this.newLecturer)
                 .then(response => {
                     this.lecturer.push(response.data);
                     this.newLecturer = { first_name: '', last_name: '', email: '', classroom: '' };
@@ -135,9 +135,9 @@ export default {
                 });
 
         },
-        deleteLecturer(first_name) {
+        deleteLecturer(id) {
             axios
-                .delete("http://localhost:8000/api/lecturer/" + first_name)
+                .delete("http://localhost:8000/api/lecturer/" + this.id)
                 .then(response => {
                     console.log(response);
                     this.fetchLecturers();
@@ -146,9 +146,9 @@ export default {
                     console.error(error);
                 });
         },
-        async addLecturer() {
+        async addLecturerClass() {
             try {
-                const response = await axios.post('/api/add-lecturer-to-class', {
+                const response = await axios.post("http://localhost:8000/addLecturerClass", {
                     lecturerID: this.lecturerID,
                     classID: this.classID
                 });
