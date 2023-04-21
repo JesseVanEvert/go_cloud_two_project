@@ -1,0 +1,151 @@
+{
+	"info": {
+		"_postman_id": "09cc199c-15ba-4a6f-b1d2-de9d119a1d6c",
+		"name": "Cloud 2 enpoint tests - lecturer",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "7282000"
+	},
+	"item": [
+		{
+			"name": "Message queue test",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \r\n    \"action\": \"message\",\r\n    \"message\": {\r\n        \"from\": \"1\",\r\n        \"to\":  \"1\",\r\n        \"message\": \"hello\"\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/handle",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"handle"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create lecturer",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"first_name\": \"Peter\",\r\n    \"last_name\": \"Stikker\",\r\n    \"email\": \"peter@inholland.nl\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/createLecturer",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"createLecturer"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all lecturers",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/getAllLecturers",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"getAllLecturers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add lecturer to class",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"class_id\": 1,\r\n    \"lecturer_id\": 2\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/addLecturerClass",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"addLecturerClass"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all classes",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Get lecturer by id",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\": 2\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/getLecturerByID",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"getLecturerByID"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -11,6 +11,8 @@ RUN CGO_ENABLED=0 go build -o lecturerService .
 
 RUN chmod +x /app/lecturerService
 
+RUN go get github.com/go-sql-driver/mysql
+
 # build a tiny docker image
 FROM alpine:latest
 
