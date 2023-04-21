@@ -57,7 +57,7 @@ func (consumer *Consumer) setup() error {
 }
 
 func (consumer *Consumer) Listen() error {
-	amqpServerURL := os.Getenv("AMQP_SERVER_URL")
+	amqpServerURL := os.Getenv("AMQP_URL")
 
 	connectRabbitMQ, err := amqp.Dial(amqpServerURL)
 	if err != nil {

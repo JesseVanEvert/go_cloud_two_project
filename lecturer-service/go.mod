@@ -5,6 +5,7 @@ go 1.18
 require (
 	entgo.io/ent v0.11.7
 	github.com/go-chi/chi v1.5.4
+	github.com/go-sql-driver/mysql v1.7.0
 	github.com/rabbitmq/amqp091-go v1.5.0
 )
 
