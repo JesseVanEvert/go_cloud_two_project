@@ -19,17 +19,17 @@ func (e *Emitter) setup() error {
 	}
 
 	channel.QueueDeclare(
-		"Messages",    // name?
-		true, // durable?
-		false, // delete when unused?
-		false,  // exclusive?
-		false, // no-wait?
-		nil,   // arguments?
+		"Messages",   
+		true, 
+		false,
+		false,
+		false,
+		nil,  
 	)
+	defer channel.Close()
 
 	e.channel = channel;
 
-	//defer channel.Close()
 	return declareExchange(channel)
 }
 

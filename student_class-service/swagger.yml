@@ -44,9 +44,9 @@ components:
       required: True
       schema:
         type: "string"
-    student_id:
-      name: "student_id"
-      description: "ID of the student"
+    classroom_id:
+      name: "classroom_id"
+      description: "ID of the classroom"
       in: path
       required: true
       schema:
@@ -147,6 +147,18 @@ paths:
       responses:
         "201":
           description: "Successfully created classroom"
+
+  /classroom/delete/{classroom_id}:
+    delete:
+      tags:
+        - classroom
+      operationId: "classroomservice.delete"
+      summary: "Delete a person"
+      parameters:
+        - $ref: "#/components/parameters/classroom_id"
+      responses:
+        "204":
+          description: "Successfully deleted person"
   /classroom/{classname}:
     get:
       operationId: "classroomservice.read_one"
@@ -174,13 +186,3 @@ paths:
             schema:
               x-body-name: "classroom"
               $ref: "#/components/schemas/Classroom"
-    delete:
-      tags:
-        - classroom
-      operationId: "classroomservice.delete"
-      summary: "Delete a person"
-      parameters:
-        - $ref: "#/components/parameters/classname"
-      responses:
-        "204":
-          description: "Successfully deleted person"

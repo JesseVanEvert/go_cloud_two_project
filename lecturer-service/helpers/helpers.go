@@ -23,7 +23,6 @@ type jsonResponse struct {
 	Data any `json:"data,omitempty"`
 }
 
-// readJSON tries to read the body of a request and converts it into JSON
 func (dh DefaultHelpers) ReadJSON(w http.ResponseWriter, r *http.Request, data any) error {
 	maxBytes := 1048576 // one megabyte
 
@@ -43,7 +42,6 @@ func (dh DefaultHelpers) ReadJSON(w http.ResponseWriter, r *http.Request, data a
 	return nil
 }
 
-// writeJSON takes a response status code and arbitrary data and writes a json response to the client
 func (dh DefaultHelpers) WriteJSON(w http.ResponseWriter, status int, data any, headers ...http.Header) error {
 	out, err := json.Marshal(data)
 	if err != nil {
@@ -66,8 +64,6 @@ func (dh DefaultHelpers) WriteJSON(w http.ResponseWriter, status int, data any, 
 	return nil
 }
 
-// errorJSON takes an error, and optionally a response status code, and generates and sends
-// a json error response
 func (dh DefaultHelpers) ErrorJSON(w http.ResponseWriter, err error) error {
 	statusCode := http.StatusBadRequest
 

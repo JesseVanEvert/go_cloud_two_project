@@ -1,17 +1,6 @@
 version: "3"
 
 services:
-  lecturer-service:
-    build:
-      context: ./../lecturer-service
-      dockerfile: ./../lecturer-service/lecturer-service.dockerfile
-    restart: always
-    ports:
-      - "8080:81"
-    deploy:
-      mode: replicated
-      replicas: 1
-
   message-service:
     environment:
       SENDGRID_API_KEY: "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"
@@ -26,7 +15,7 @@ services:
 
   student_class-service:
     build:
-      context: .
+      context: ./../student_class-service
       dockerfile: ../student_class-service/student_class-service.Dockerfile
     ports:
       - "8000:8000"

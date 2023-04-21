@@ -2,51 +2,38 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	API "lecturer/controllers"
 	"lecturer/ent"
 	"lecturer/event"
 	"lecturer/helpers"
-	models "lecturer/models"
 	"lecturer/repositories"
-	Services "lecturer/services"
+	"lecturer/services"
 	"log"
 	"math"
-	"net/http"
 	"os"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-	/*_ "github.com/go-sql-driver/mysql"
-	_ "github.com/jackc/pgconn"
-	_ "github.com/jackc/pgx/v4"
-	_ "github.com/jackc/pgx/v4/stdlib"*/
 	amqp "github.com/rabbitmq/amqp091-go"
 )
+
+/*
+
+VERANDEREN NAAR ENV
+
+*/
 
 const webPort = "80"
 
 type Config struct {
 	Rabbit *amqp.Connection
 	Helpers helpers.Helpers
-	LecturerService Services.LecturerService
-	ClassService Services.ClassRoomService
+	LecturerService services.LecturerService
+	ClassService services.ClassRoomService
 	Channel *amqp.Channel
 }
 
 
-func (c *Config) registerRoutes() {
-	mux := chi.NewRouter()
-
-	mux.HandleFunc("/createLecturer", c.CreateLecturer)
-	mux.HandleFunc("/getAllLecturers", c.GetAllLecturers)
-	mux.HandleFunc("/addLecturerToClass", c.AddLecturerToClass)
-	mux.HandleFunc("/sendMessage", c.SendMessage)
-	mux.HandleFunc("/getAllClasses", c.GetAllClasses)
-	mux.HandleFunc("/getLecturerByID", c.GetLecturerByID)
-
-	http.ListenAndServe(":8080", mux)
-}
 func main() {
 	// connect to database
 	client, err := ent.Open(os.Getenv("lECTURER_DATABASE_TYPE"), os.Getenv("LECTURER_MYSQL_CONNECTION_STRING"))
@@ -75,8 +62,14 @@ func main() {
 
 	log.Printf("Starting broker service on port %s\n", webPort)
 
-	lecturerService := Services.NewLecturerService(repositories.NewLecturerRepository(ctx, client))
-	classService := Services.NewClassRoomService(repositories.NewClassRoomRepository(ctx, client))
+	lecturerService := services.NewLecturerService(repositories.NewLecturerRepository(ctx, client))
+	classService := services.NewClassRoomService(repositories.NewClassRoomRepository(ctx, client))
+
+	/* 
+
+	VERPLAATSEN NAAR EIGEN PACKAGE
+
+	*/
 
 	c := Config{
 		Rabbit: rabbitConn,
@@ -92,7 +85,9 @@ func main() {
 
 	go consumer.Listen()
 
-	c.registerRoutes()
+	api := API.NewAPI(c.Rabbit, &c.Helpers, &c.LecturerService, &c.ClassService)
+
+	go api.Start()
 }
 
 func connect() (*amqp.Connection, error) {
@@ -100,7 +95,6 @@ func connect() (*amqp.Connection, error) {
 	var backOff = 1 * time.Second
 	var connection *amqp.Connection
 
-	// don't continue until rabbit is ready
 	for {
 		c, err := amqp.Dial(os.Getenv("AMQP_SERVER_URL"))
 		if err != nil {
@@ -127,164 +121,7 @@ func connect() (*amqp.Connection, error) {
 }
 
 
-// HandleSubmission is the main point of entry into the broker. It accepts a JSON
-// payload and performs an action based on the value of "action" in that JSON.
-func (c *Config ) SendMessage(w http.ResponseWriter, r *http.Request) {
-	var requestPayload models.RequestPayload
-	
-	err := c.Helpers.ReadJSON(w, r, &requestPayload)
-	
-	//err := h.h.readJSON(w, r, &requestPayload)
-	if err != nil {
-		c.Helpers.ErrorJSON(w, err)
-		return
-	}
 
-	switch requestPayload.Action {
-	case "message":
-		c.putMessageOnQueue(w, requestPayload.Message)
-	default:
-		c.Helpers.ErrorJSON(w, err)
-	}
-}
-
-func (c *Config )  putMessageOnQueue(w http.ResponseWriter, msg models.MessagePayload) {
-
-	err := c.pushToQueue(msg.From, msg.To, msg.Message)
-	if err != nil {
-		c.Helpers.ErrorJSON(w, err)
-		return
-	}
-
-	var payload models.JsonResponse
-	payload.Error = false
-	payload.Message = "Send message via RabbitMQ"
-
-	c.Helpers.WriteJSON(w, http.StatusAccepted, payload)
-}
-
-func (c *Config)  pushToQueue(from string, to []string, message string) error {
-	emitter, err := event.NewEventEmitter(c.Rabbit)
-	if err != nil {
-		return err
-	}
-
-	payload := models.MessagePayload{
-		From:    from,
-		To:      to,
-		Message: message,
-	}
-
-	j, _ := json.MarshalIndent(&payload, "", "\t")
-	err = emitter.Push(string(j), "Messages")
-	
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-
-func (c *Config ) CreateLecturer(w http.ResponseWriter, lect *http.Request) {
-	var lecturerPayload models.LecturerPayload
-	error := c.Helpers.ReadJSON(w, lect, &lecturerPayload)
-
-	if error!= nil {
-		c.Helpers.ErrorJSON(w, error)
-		return 
-	}
-
-	lect3, error := c.LecturerService.CreateLecturer(lecturerPayload)
-
-	if(error != nil){
-		c.Helpers.ErrorJSON(w, error)
-		return
-	}
-
-	var payload models.JsonResponse
-
-	payload.Error = false
-	payload.Message = "Created lecturer"
-	payload.Data = lect3
-
-	c.Helpers.WriteJSON(w, http.StatusAccepted, payload)
-}
-
-func (c *Config) GetAllClasses(w http.ResponseWriter, r *http.Request) {
-	classes := c.ClassService.GetAllClasses()
-
-	var payload models.JsonResponse
-
-	payload.Error = false
-	payload.Message = "All classes"
-	payload.Data = classes
-
-	c.Helpers.WriteJSON(w, http.StatusAccepted, payload)
-}
-
-func (c *Config ) AddLecturerToClass(w http.ResponseWriter, lect *http.Request) {
-	var classLecturerPayload models.ClassLecturerPayload
-	error := c.Helpers.ReadJSON(w, lect, &classLecturerPayload)
-
-	if(error != nil){
-		c.Helpers.ErrorJSON(w, error)
-		return
-	}
-
-	message, error := c.LecturerService.AddLecturerToClass(classLecturerPayload.ClassId, classLecturerPayload.LecturerId)
-
-	if(error != nil){
-		c.Helpers.ErrorJSON(w, error)
-		return
-	}
-
-	var payload models.JsonResponse
-	payload.Error = false
-	payload.Message = message
-	payload.Data = nil
-
-	c.Helpers.WriteJSON(w, http.StatusAccepted, payload)
-}
-
-func (c *Config ) GetAllLecturers(w http.ResponseWriter, request *http.Request)  {
-	lecturers, err := c.LecturerService.GetAllLecturers()
-
-	if err != nil {
-		c.Helpers.ErrorJSON(w, err)
-		return
-	}
-
-	var payload models.JsonResponse
-	payload.Error = false
-	payload.Message = "Retrieved lecturers"
-	payload.Data = lecturers
-
-	c.Helpers.WriteJSON(w, http.StatusOK, payload)
-}
-
-func (c *Config) GetLecturerByID (w http.ResponseWriter, request *http.Request) {
-	var idPayload models.IDPayload
-	err := c.Helpers.ReadJSON(w, request, &idPayload)
-
-	if err != nil {
-		c.Helpers.ErrorJSON(w, err)
-		return
-	}
-
-	lecturer, err := c.LecturerService.GetLecturerByID(idPayload.ID)
-
-	if err != nil {
-		c.Helpers.ErrorJSON(w, err)
-		return
-	}
-
-	var payload models.JsonResponse
-	payload.Error = false
-	payload.Message = "Retrieved lecturer"
-	payload.Data = lecturer
-
-	c.Helpers.WriteJSON(w, http.StatusOK, payload)
-}
 
 
 

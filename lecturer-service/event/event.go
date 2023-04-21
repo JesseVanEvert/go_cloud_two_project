@@ -6,23 +6,23 @@ import (
 
 func declareExchange(ch *amqp.Channel) error {
 	return ch.ExchangeDeclare(
-		"MessageExchange", // name
-		"direct",    // type
-		true,       // durable?
-		false,      // auto-deleted?
-		false,      // internal?
-		false,      // no-wait?
-		nil,        // arguements?
+		"MessageExchange", 
+		"direct",   
+		true,       
+		false,      
+		false,      
+		false,      
+		nil,        
 	)
 }
 
 func declareQueue(ch *amqp.Channel) (amqp.Queue, error) {
 	return ch.QueueDeclare(
-		"Messages",    // name?
-		false, // durable?
-		false, // delete when unused?
-		true,  // exclusive?
-		false, // no-wait?
-		nil,   // arguments?
+		"Messages",   
+		false, 
+		false, 
+		true,  
+		false, 
+		nil,   
 	)
 }

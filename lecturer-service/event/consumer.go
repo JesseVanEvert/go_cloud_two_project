@@ -45,46 +45,34 @@ type Payload struct {
 }
 
 func (consumer *Consumer) Listen() error {
-	// Define RabbitMQ server URL.
 	amqpServerURL := os.Getenv("AMQP_SERVER_URL")
-	// Create a new RabbitMQ connection.
 	connectRabbitMQ, err := amqp.Dial(amqpServerURL)
 	if err != nil {
 		panic(err)
 	}
 	defer connectRabbitMQ.Close()
 
-	// Opening a channel to our RabbitMQ instance over
-	// the connection we have already established.
-	channelRabbitMQ, err := connectRabbitMQ.Channel()
+	channel, err := consumer.conn.Channel()
 	if err != nil {
 		panic(err)
 	}
-	defer channelRabbitMQ.Close()
+	defer channel.Close()
 
-	channelRabbitMQ.QueueDeclare(
-		"Classes",    // name?
-		true, // durable?
-		false, // delete when unused?
-		false,  // exclusive?
-		false, // no-wait?
-		nil,   // arguments?
-	)
+	declareQueue(channel)
 
-	classrooms, err := channelRabbitMQ.Consume(
-		"Classes", // queue name
-		"",              // consumer
-		true,            // auto-ack
-		false,           // exclusive
-		false,           // no local
-		false,           // no wait
-		nil,             // arguments
+	classrooms, err := channel.Consume(
+		"Classes", 
+		"",        
+		true,      
+		false,     
+		false,     
+		false,     
+		nil,       
 	)
 	if err != nil {
 		log.Println(err)
 	}
 
-	// Build a welcome message.
 	log.Println("Successfully connected to RabbitMQ")
 	log.Println("Waiting for messages")
 
