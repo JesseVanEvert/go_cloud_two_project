@@ -31,6 +31,8 @@ services:
       mode: replicated
       replicas: 1
     environment:
+      MESSAGE_DATABASE_TYPE: "mysql"
+      MESSAGE_MYSQL_CONNECTION_STRING: "tester:secret@tcp(db:3306)/message"
       AMQP_SERVER_URL: "amqp://guest:guest@rabbitmq:5672/"
       SENDGRID_API_KEY: "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"
 

@@ -34,7 +34,7 @@ func (c *Config) registerRoutes() {
 	mux.HandleFunc("/messages/{id}", c.FindByMessageId)
 	mux.HandleFunc("/messages/lecturer/{lecturerEmail}", c.FindMessageByLecturerEmail)
 
-	http.ListenAndServe(":8081", mux)
+	http.ListenAndServe(":8080", mux)
 
 	/*
 	fmt.Println("Starting Web Server on port", webPort)
@@ -58,7 +58,7 @@ func main() {
 
 	defer rabbitConn.Close()
 
-	db, err := sql.Open("mysql", "tester:secret@tcp(mysql:3306)/message")
+	db, err := sql.Open(os.Getenv("MESSAGE_DATABASE_TYPE"), os.Getenv("MESSAGE_MYSQL_CONNECTION_STRING"))
 
 	if err != nil {
 		panic(err.Error())
@@ -96,7 +96,7 @@ func connect() (*amqp.Connection, error) {
 
 	// don't continue until rabbit is ready
 	for {
-		c, err := amqp.Dial(os.Getenv("AMQP_URL"))
+		c, err := amqp.Dial(os.Getenv("AMQP_SERVER_URL"))
 		if err != nil {
 			fmt.Println("RabbitMQ not yet ready...")
 			counts++
@@ -133,6 +133,7 @@ func (c *Config) GetAllMessages(w http.ResponseWriter, request *http.Request) {
 	payload.Message = "Retrieved messages"
 	payload.Data = messages
 
+	//w.Header().Set("Content-Type", "application/json")
 	c.Helpers.WriteJSON(w, http.StatusAccepted, payload)
 }
 
@@ -160,6 +161,7 @@ func (c *Config) FindByMessageId(w http.ResponseWriter, request *http.Request) {
 	c.Helpers.WriteJSON(w, http.StatusOK, payload)
 }
 
+// Find message By lecturer email
 func (c *Config) FindMessageByLecturerEmail(w http.ResponseWriter, request *http.Request) {
 	var lecturerEmailPayload models.LecturEmailPayload
 	err := c.Helpers.ReadJSON(w, request, &lecturerEmailPayload)
