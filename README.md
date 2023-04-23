@@ -39,9 +39,20 @@ Jesse has only used master, and the insights concerning his commits are accurate
 - Jesse:
   - Designing the architecture;
   - Development lecturer service;
+  - Database implementation with ent ORM in lecturer service;
   - Development message service (refactor and cleanup);
   - Development student and class service (refactor and cleanup);
   - Connecting all services with RabbitMQ queues;
   - Testing with Postman;
   - Attempt deployment openshift and minikube + kubernetes;
   - Succesfull deployment with Docker Swarm.
+  
+  
+## deployment
+
+- Local deployment command:
+  - `Docker compose up`
+
+- Docker Swarm deployment commands:
+  - `docker swarm init`
+  - `docker stack deploy --compose-file swarm.yml <name>`
