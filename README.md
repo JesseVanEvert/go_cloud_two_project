@@ -1,16 +1,15 @@
 # go_cloud_two_project
 
-*
-Notes: 
-the use of different branches and repositories, by some of the team members, has caused the insights on the contribution page to become wacky.
+
+*Notes: 
+The use of different branches and repositories, by some of the team members, has caused the insights on the contribution page to become wacky.
 For example: it looks like Mahedi rewrote the code for the Apollo 11 mission :rocket: and Brandon and Tanzeel went along for the ride.
-Jesse has only used master, and the insights concerning his commits are accurate
+Jesse has only used master, and the insights concerning his commits are accurate*
 
-To give a more accurate depiction a header with everyone's contributions has been added to this README.
+*To give a more accurate depiction a header with everyone's contributions has been added to this README.*
 
-The architecture design can be found in the wiki, or in the master branch -> documents.
+*The architecture design can be found in the wiki, or in the master branch -> documents.*
 
-*
 
 ## contributions
 
