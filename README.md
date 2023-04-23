@@ -16,15 +16,17 @@ The architecture design can be found in the wiki, or in the master branch -> doc
 - Brandon: 
   - Frontend development with vue.js and bootstrap;
   - Development student and class service;
-  - Attempt deployment openshift and minikube + kubernetes.
+  - Attempt deployment openshift and minikube + kubernetes; 
   
 - Tanzeel:
   - Development student and class service;
-  - Attempt deployment openshift and minikube + kubernetes.
+  - Attempt deployment openshift and minikube + kubernetes;
+  - Frontend development with vue.js and bootstrap;
  
 - Mahedi:
   - Development message service;
-  - Attempt deployment openshift and minikube + kubernetes.
+  - Attempt deployment openshift and minikube + kubernetes;
+  - Frontend development with vue.js and bootstrap;
   
 - Jesse
   - Development lecturer service;
