@@ -48,10 +48,10 @@ Jesse has only used master, and the insights concerning his commits are accurate
   - Succesfull deployment with Docker Swarm.
   
   
-## deployment
+## deployment commands
 
 - Local deployment command:
-  - `Docker compose up`
+  - `docker compose up`
 
 - Docker Swarm deployment commands:
   - `docker swarm init`
