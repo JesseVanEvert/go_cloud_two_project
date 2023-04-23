@@ -36,7 +36,7 @@ Jesse has only used master, and the insights concerning his commits are accurate
   - Frontend development with vue.js and bootstrap;
   - Containerized the frontend with a dockerfile for deployment.
   
-- Jesse
+- Jesse:
   - Designing the architecture;
   - Development lecturer service;
   - Development message service (refactor and cleanup);
