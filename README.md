@@ -4,7 +4,7 @@
 Notes: 
 the use of different branches and repositories, by some of the team members, has caused the insights on the contribution page to become wacky
 For example: it looks like Mahedi rewrote the code for the Apollo 11 mission :rocket: and Brandon and Tanzeel went along for the ride
-Jesse has only used master, and the insights concerning his commits are accurate* 
+Jesse has only used master, and the insights concerning his commits are accurate
 
 To give a more accurate depiction a header with everyone's contributions has been added to this README
 
@@ -13,20 +13,27 @@ The architecture design can be found in the wiki, or in the master branch -> doc
 
 ## contributions
 
+- All:
+  Every team member was available when one of the other members was stuck, Brandon especially has always been ready to help when needed. 
+
 - Brandon: 
   - Frontend development with vue.js and bootstrap;
   - Development student and class service;
-  - Attempt deployment openshift and minikube + kubernetes; 
+  - Attempt deployment openshift and minikube + kubernetes. 
+  
   
 - Tanzeel:
   - Development student and class service;
   - Attempt deployment openshift and minikube + kubernetes;
-  - Frontend development with vue.js and bootstrap;
+  - Development of a frontend for testing the student and class service;
+  - Implementation of RabbitMQ in the student service.
+  
  
 - Mahedi:
   - Development message service;
   - Attempt deployment openshift and minikube + kubernetes;
   - Frontend development with vue.js and bootstrap;
+  - Containerized the frontend with a dockerfile for deployment.
   
 - Jesse
   - Development lecturer service;
